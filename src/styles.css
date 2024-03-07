@@ -1,0 +1,1041 @@
+/* -------------------------------------------------------------------------- */
+/*                                    Reset                                   */
+/* -------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+button,
+textarea,
+fieldset,
+input {
+  all: unset;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select,
+pre {
+  font: inherit;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+/* -------------------------------------------------------------------------- */
+
+#root {
+  /* Color Palette */
+  --gray-1: #fcfcfd;
+  --gray-2: #f9f9fb;
+  --gray-3: #f0f0f3;
+  --gray-4: #e8e8ec;
+  --gray-5: #e0e1e6;
+  --gray-6: #d9d9e0;
+  --gray-7: #cdced6;
+  --gray-8: #b9bbc6;
+  --gray-9: #8b8d98;
+  --gray-10: #80838d;
+  --gray-11: #60646c;
+  --gray-12: #1c2024;
+
+  --gray-a1: #00005503;
+  --gray-a2: #00005506;
+  --gray-a3: #0000330f;
+  --gray-a4: #00002d17;
+  --gray-a5: #0009321f;
+  --gray-a6: #00002f26;
+  --gray-a7: #00062e32;
+  --gray-a8: #00083046;
+  --gray-a9: #00051d74;
+  --gray-a10: #00071b7f;
+  --gray-a11: #0007149f;
+  --gray-a12: #000509e3;
+
+  --blue-1: #fbfdff;
+  --blue-2: #f4faff;
+  --blue-3: #e6f4fe;
+  --blue-4: #d5efff;
+  --blue-5: #c2e5ff;
+  --blue-6: #acd8fc;
+  --blue-7: #8ec8f6;
+  --blue-8: #5eb1ef;
+  --blue-9: #0090ff;
+  --blue-10: #0588f0;
+  --blue-11: #0d74ce;
+  --blue-12: #113264;
+
+  --red-1: #fffcfc;
+  --red-2: #fff8f7;
+  --red-3: #feebe7;
+  --red-4: #ffdcd3;
+  --red-5: #ffcdc2;
+  --red-6: #fdbdaf;
+  --red-7: #f5a898;
+  --red-8: #ec8e7b;
+  --red-9: #e54d2e;
+  --red-10: #dd4425;
+  --red-11: #d13415;
+  --red-12: #5c271f;
+
+  --orange-1: #fefcfb;
+  --orange-2: #fff7ed;
+  --orange-3: #ffefd6;
+  --orange-4: #ffdfb5;
+  --orange-5: #ffd19a;
+  --orange-6: #ffc182;
+  --orange-7: #f5ae73;
+  --orange-8: #ec9455;
+  --orange-9: #f76b15;
+  --orange-10: #ef5f00;
+  --orange-11: #cc4e00;
+  --orange-12: #582d1d;
+
+  --orange-a1: #c0400004;
+  --orange-a2: #ff8e0012;
+  --orange-a3: #ff9c0029;
+  --orange-a4: #ff91014a;
+  --orange-a5: #ff8b0065;
+  --orange-a6: #ff81007d;
+  --orange-a7: #ed6c008c;
+  --orange-a8: #e35f00aa;
+  --orange-a9: #f65e00ea;
+  --orange-a10: #ef5f00;
+  --orange-a11: #cc4e00;
+  --orange-a12: #431200e2;
+
+  /* Color Aliases */
+  --color-container-bg: hsla(210, 100%, 98%, 0.9);
+  --color-text-primary: var(--gray-12);
+  --color-text-secondary: var(--gray-11);
+  --color-text-link: var(--blue-11);
+  --color-text-error: var(--red-11);
+  --color-text-danger: var(--red-11);
+
+  /* Depth/Shadow */
+  --shadow-depth-1: 0px 2px 1px rgba(0 0 0 / 0.01),
+    0px 4px 2px rgba(0 0 0 / 0.02), 0px 0px 4px rgba(0 0 0 / 0.032),
+    0px 2px 3px rgba(0 0 0 / 0.05), 0px 4px 15px rgba(0 0 0 / 0.08);
+  --shadow-depth-2: 0px 0px 1px rgba(0 0 0 / 0.15),
+    0px 6px 1.6px rgba(0 0 0 / 0.01), 0px 8px 4px rgba(0 0 0 / 0.02),
+    0px 0px 8px rgba(0 0 0 / 0.032), 0px 4px 6px rgba(0 0 0 / 0.05),
+    0px 9px 30px rgba(0 0 0 / 0.08);
+  --shadow-depth-3: inset 0px 300px 300px 0px rgba(255 255 255 / 0.4),
+    inset 0 0 0 1px rgba(255 255 255 / 0.6),
+    inset 0px -1px 1px rgba(0 0 0 / 0.18), 0px 0px 1px rgba(0 0 0 / 0.2),
+    0px 8.3px 1.6px rgba(0 0 0 / 0.01), 0px 10.1px 4.2px rgba(0 0 0 / 0.02),
+    0px 11.1px 8.5px rgba(0 0 0 / 0.032), 0px 11.7px 17.5px rgba(0 0 0 / 0.05),
+    0px 12px 48px rgba(0 0 0 / 0.08);
+
+  /* Animation */
+  --animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Layout */
+  --window-width: 340px;
+
+  /* Typography */
+  font-family: "Inter-FWN", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings: "slnt" 0;
+  line-height: 1.5;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.Container {
+  max-width: var(--window-width);
+  z-index: 99999;
+  position: fixed;
+  display: flex;
+  flex-direction: column;
+  top: 24px;
+  right: 24px;
+  border-radius: 8px;
+  background: var(--color-container-bg);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-depth-3);
+  backdrop-filter: blur(20px);
+  transition:
+    opacity 0.1s var(--animation-timing-function),
+    transform 0.15s var(--animation-timing-function);
+
+  &[data-transition-state="true"] {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  &[data-transition-state="false"] {
+    opacity: 0;
+    transform: translateX(6px);
+  }
+}
+
+.Page {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 24px 24px;
+  max-width: var(--window-width);
+}
+
+kbd {
+  background-color: var(--gray-1);
+  border: 1px solid var(--gray-5);
+  border-bottom-color: var(--gray-7);
+  border-radius: 2px;
+  box-shadow: inset 0 -1px 0 var(--gray-8);
+  color: var(--gray-11);
+  display: inline-block;
+  font-size: 11px;
+  line-height: 10px;
+  padding: 3px 5px;
+  vertical-align: middle;
+}
+
+.Icon {
+  display: inline-block;
+  vertical-align: middle;
+
+  & > svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+strong {
+  font-weight: 600;
+}
+
+em {
+  font-variation-settings: "slnt" -10;
+}
+
+/* --------------------------------- Header --------------------------------- */
+
+.Header {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  z-index: 1;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    block-size: 1px;
+    background: var(--gray-a3);
+    z-index: -1;
+  }
+}
+
+.Header::after {
+  opacity: 0;
+  transition: opacity 0.2s;
+  will-change: opacity;
+}
+:has(.Container:hover) .Header::after {
+  opacity: 1;
+}
+
+/* --------------------------------- Buttons -------------------------------- */
+
+.GhostButton {
+  opacity: 0;
+  transition: opacity 0.2s;
+  will-change: opacity;
+}
+:has(.Container:hover) .GhostButton {
+  opacity: 1;
+}
+
+.IconButton {
+  padding: 4px;
+  border-radius: 4px;
+
+  &:hover {
+    cursor: pointer;
+  }
+
+  &[data-variant="default"] {
+    color: var(--color-text-secondary);
+
+    &:hover {
+      background: var(--gray-a3);
+    }
+  }
+
+  &[data-variant="danger"] {
+    /* color: var(--color-text-danger); */
+
+    &:hover {
+      background: var(--red-11);
+      color: var(--red-1);
+    }
+  }
+
+  & > svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   Tooltip                                  */
+/* -------------------------------------------------------------------------- */
+
+.TooltipContent {
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--orange-12);
+  background: linear-gradient(180deg, var(--orange-3), var(--orange-2));
+  box-shadow: var(--shadow-depth-1);
+  user-select: none;
+  animation-duration: 0.2s;
+  animation-timing-function: var(--animation-timing-function);
+  z-index: 1;
+  will-change: transform, opacity;
+
+  &[data-variant="danger"] {
+    color: var(--color-text-danger);
+    font-weight: 500;
+    background: linear-gradient(180deg, var(--red-3), var(--red-1));
+    box-shadow:
+      var(--shadow-depth-1),
+      inset 0 1px 0 var(--red-4),
+      inset 1px 0 var(--red-4),
+      inset -1px 0 0 var(--red-4),
+      inset 0 0 0 2px var(--red-2);
+
+    & .TooltipArrow {
+      fill: var(--red-1);
+    }
+  }
+
+  .TooltipArrow {
+    fill: var(--orange-2);
+  }
+
+  .TooltipTriggerIcon {
+    & > svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  &[data-variant="danger"] {
+    color: var(--gray-1);
+    background: linear-gradient(180deg, var(--red-11), var(--red-9));
+    box-shadow: var(--shadow-depth-1);
+    text-shadow: 0 1px 0 var(--red-11);
+
+    & .TooltipArrow {
+      fill: var(--red-9);
+    }
+  }
+}
+.TooltipContent[data-state="delayed-open"][data-side="top"] {
+  animation-name: slideDownAndFade;
+}
+.TooltipContent[data-state="delayed-open"][data-side="right"] {
+  animation-name: slideLeftAndFade;
+}
+.TooltipContent[data-state="delayed-open"][data-side="bottom"] {
+  animation-name: slideUpAndFade;
+}
+.TooltipContent[data-state="delayed-open"][data-side="left"] {
+  animation-name: slideRightAndFade;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                    Notes                                   */
+/* -------------------------------------------------------------------------- */
+
+.NoteEditor {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-wrap: wrap;
+
+  &:focus-within {
+    outline: none;
+  }
+
+  & i {
+    font-variation-settings: "slnt" -10;
+  }
+
+  & b {
+    font-weight: 600;
+  }
+
+  & a {
+    color: var(--color-text-link);
+    cursor: pointer;
+  }
+}
+
+.NoteFooter {
+  display: flex;
+  justify-content: space-between;
+  margin-block-start: 8px;
+}
+
+/* ---------------------------- Create Note State --------------------------- */
+
+.EmptyNotesLabel {
+  color: var(--color-text-secondary);
+}
+
+.EmptyNotesFootnote {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.NewNoteButton {
+  display: flex;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--color-text-primary);
+  background: var(--gray-a3);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  padding-inline-start: 8px;
+  user-select: none;
+  outline: none;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--gray-a4);
+  }
+
+  & > svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  & > .NewNoteButtonText {
+    margin-inline-start: 6px;
+  }
+}
+
+.NewNoteButtonHotkey {
+  margin-inline-start: auto;
+  color: var(--gray-10);
+}
+
+/* ---------------------------- First Time Guide ---------------------------- */
+
+.FirstTimeGuide {
+  margin-block: 8px 16px;
+  background: var(--orange-3);
+  border: 1px solid var(--orange-6);
+  padding: 8px;
+  font-size: 13px;
+  color: var(--orange-11);
+  border-radius: 4px;
+}
+
+.FirstTimeGuideCloseButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-block-start: 8px;
+  border-radius: 4px;
+  padding-block: 4px;
+  padding-inline: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  background: linear-gradient(180deg, var(--orange-4), var(--orange-5));
+  color: var(--orange-11);
+  border: 1px solid var(--orange-6);
+  box-shadow: 0 1px 2px var(--gray-a3);
+
+  &:hover {
+    background: linear-gradient(180deg, var(--orange-3), var(--orange-4));
+  }
+
+  & > svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* --------------------------- URL Pattern Editor --------------------------- */
+
+.URLPatternButton {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 99em;
+  margin-inline-start: -10px;
+  font-size: 12px;
+  max-width: 85%;
+  color: var(--color-text-secondary);
+
+  &:hover {
+    cursor: pointer;
+    background: var(--gray-a3);
+  }
+
+  & > svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  & > * {
+    flex-shrink: 0;
+  }
+
+  & > .URLPatternButtonText {
+    margin-inline-start: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90%;
+  }
+}
+:has(> [data-radix-popper-content-wrapper]) .URLPatternButton {
+  opacity: 1;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                   Popover                                  */
+/* -------------------------------------------------------------------------- */
+
+.PopoverContent {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  min-width: 350px;
+  background-color: var(--gray-2);
+  box-shadow: var(--shadow-depth-2);
+  animation-duration: 0.2s;
+  animation-timing-function: var(--animation-timing-function);
+  will-change: transform, opacity;
+}
+
+.PopoverContent[data-state="open"][data-side="top"] {
+  animation-name: slideDownAndFade;
+}
+.PopoverContent[data-state="open"][data-side="right"] {
+  animation-name: slideLeftAndFade;
+}
+.PopoverContent[data-state="open"][data-side="bottom"] {
+  animation-name: slideUpAndFade;
+}
+.PopoverContent[data-state="open"][data-side="left"] {
+  animation-name: slideRightAndFade;
+}
+
+.PopoverArrow {
+  fill: var(--gray-2);
+}
+
+.PopoverClose {
+  font-family: inherit;
+  border-radius: 100%;
+  height: 25px;
+  width: 25px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-11);
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+.PopoverClose:hover {
+  background-color: var(--gray-4);
+}
+.PopoverClose:focus {
+  box-shadow: 0 0 0 2px var(--gray-7);
+}
+
+/* ---------------------------------- Form ---------------------------------- */
+
+.Form {
+  display: flex;
+  gap: 8px;
+}
+
+.FormControl {
+  position: relative;
+  flex: 1;
+  display: flex;
+
+  & > .TooltipTriggerIcon {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-10);
+
+    & > svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.InputHelper {
+  background: var(--red-3);
+  border: 1px solid var(--red-6);
+  padding: 8px;
+  font-size: 12px;
+  color: var(--red-11);
+  border-radius: 4px;
+
+  &[data-state="error"] {
+    color: var(--color-text-error);
+  }
+
+  & > .URLPatternUndoChangeButton {
+    cursor: pointer;
+    font-weight: 600;
+    border-bottom: 1px dashed;
+    line-height: 1.2;
+  }
+}
+
+.Input {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  border-radius: 4px;
+  padding: 8px 28px 8px 8px;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--gray-12);
+  box-shadow: 0 0 0 1px var(--gray-7);
+}
+.Input:focus {
+  box-shadow: 0 0 0 2px var(--gray-8);
+}
+
+.URLPatternSaveButton {
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  background: linear-gradient(180deg, var(--gray-2), var(--gray-3));
+  color: var(--gray-12);
+  border: 1px solid var(--gray-6);
+  box-shadow: 0 1px 2px var(--gray-a3);
+
+  &:hover {
+    border-color: var(--gray-7);
+    background: linear-gradient(180deg, var(--gray-1), var(--gray-2));
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              Settings Dropdown                             */
+/* -------------------------------------------------------------------------- */
+
+.DropdownMenuContent,
+.DropdownMenuSubContent {
+  min-width: 220px;
+  background: var(--gray-2);
+  border-radius: 6px;
+  padding: 4px;
+  box-shadow: var(--shadow-depth-2);
+  animation-duration: 0.2s;
+  animation-timing-function: var(--animation-timing-function);
+  will-change: transform, opacity;
+}
+.DropdownMenuContent[data-side="top"],
+.DropdownMenuSubContent[data-side="top"] {
+  animation-name: slideDownAndFade;
+}
+.DropdownMenuContent[data-side="right"],
+.DropdownMenuSubContent[data-side="right"] {
+  animation-name: slideLeftAndFade;
+}
+.DropdownMenuContent[data-side="bottom"],
+.DropdownMenuSubContent[data-side="bottom"] {
+  animation-name: slideUpAndFade;
+}
+.DropdownMenuContent[data-side="left"],
+.DropdownMenuSubContent[data-side="left"] {
+  animation-name: slideRightAndFade;
+}
+
+.DropdownMenuItem,
+.DropdownMenuCheckboxItem,
+.DropdownMenuRadioItem,
+.DropdownMenuSubTrigger {
+  font-size: 13px;
+  line-height: 1;
+  color: var(--color-text-primary);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 6px;
+  position: relative;
+  padding-left: 24px;
+  user-select: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.DropdownMenuSubTrigger[data-state="open"] {
+  background-color: var(--gray-4);
+  color: var(--gray-11);
+}
+
+.DropdownMenuItem[data-disabled],
+.DropdownMenuCheckboxItem[data-disabled],
+.DropdownMenuRadioItem[data-disabled],
+.DropdownMenuSubTrigger[data-disabled] {
+  color: var(--gray-8);
+  pointer-events: none;
+}
+
+.DropdownMenuItem[data-highlighted],
+.DropdownMenuCheckboxItem[data-highlighted],
+.DropdownMenuRadioItem[data-highlighted],
+.DropdownMenuSubTrigger[data-highlighted] {
+  background-color: var(--gray-4);
+  color: var(--gray-12);
+}
+
+.DropdownMenuLabel {
+  padding-left: 25px;
+  font-size: 12px;
+  line-height: 25px;
+  color: var(--gray-11);
+}
+
+.DropdownMenuSeparator {
+  height: 1px;
+  background-color: var(--gray-6);
+  margin: 4px;
+}
+
+.DropdownMenuItemIndicator {
+  position: absolute;
+  left: 4px;
+  width: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-11);
+}
+
+.DropdownMenuArrow {
+  fill: var(--gray-2);
+}
+
+.RightSlot {
+  margin-left: auto;
+  padding-left: 20px;
+  color: var(--gray-11);
+}
+
+[data-highlighted] > .RightSlot {
+  color: white;
+}
+[data-disabled] .RightSlot {
+  color: var(--gray-8);
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               Hotkey Recorder                              */
+/* -------------------------------------------------------------------------- */
+
+.HotkeyRecorderTitle {
+  font-size: 13px;
+  color: var(--gray-11);
+}
+
+.HotkeyRecorderKeys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--gray-12);
+  box-shadow:
+    0 0 0 1px var(--gray-7),
+    inset 0 1px 4px var(--gray-a7);
+  background: var(--gray-a3);
+  overflow: auto;
+
+  & kbd {
+    position: relative;
+    border: 1px solid var(--gray-7);
+    box-shadow: inset 0 -2px 0 var(--gray-8);
+    font-size: 16px;
+    line-height: 16px;
+    padding: 8px 16px;
+    text-transform: uppercase;
+
+    &:not(:last-child)::after {
+      content: "+";
+      position: absolute;
+      top: 50%;
+      left: 100%;
+      transform: translateY(-50%);
+      line-height: 1;
+      font-size: 1.4em;
+      width: 22px;
+      text-align: center;
+    }
+  }
+}
+
+.HotkeyRecorderActions {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.HotkeyRecorderSaveButton {
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  background: linear-gradient(180deg, var(--gray-2), var(--gray-3));
+  color: var(--gray-12);
+  border: 1px solid var(--gray-6);
+  box-shadow: 0 1px 2px var(--gray-a3);
+
+  &:hover {
+    border-color: var(--gray-7);
+    background: linear-gradient(180deg, var(--gray-1), var(--gray-2));
+  }
+}
+
+.HotkeyRecorderResetButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--gray-11);
+  border: 1px solid var(--gray-6);
+  box-shadow: 0 1px 2px var(--gray-a3);
+
+  &:hover {
+    border-color: var(--gray-7);
+    background: var(--gray-a3);
+  }
+
+  & > svg {
+    transform: translateY(-2px);
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.HotkeyRecorderWarning {
+  background: var(--orange-3);
+  border: 1px solid var(--orange-6);
+  padding: 8px;
+  font-size: 13px;
+  color: var(--orange-11);
+  border-radius: 4px;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                    Help                                    */
+/* -------------------------------------------------------------------------- */
+
+.Help {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  & p {
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  & h2 {
+    padding-block-start: 8px;
+    font-size: 16px;
+    line-height: 1;
+    font-weight: 600;
+  }
+
+  & a {
+    color: var(--blue-11);
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+      color: var(--blue-10);
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                 Scroll Area                                */
+/* -------------------------------------------------------------------------- */
+
+.ScrollAreaRoot {
+  width: 340px;
+  height: 100%;
+  overflow: hidden;
+  --scrollbar-size: 16px;
+}
+
+.ScrollAreaViewport {
+  width: 100%;
+  max-height: calc(100vh - 80px);
+}
+
+.ScrollAreaScrollbar {
+  display: flex;
+  user-select: none;
+  touch-action: none;
+  padding: 6px;
+}
+.ScrollAreaScrollbar[data-orientation="vertical"] {
+  width: var(--scrollbar-size);
+}
+.ScrollAreaScrollbar[data-orientation="horizontal"] {
+  flex-direction: column;
+  height: var(--scrollbar-size);
+}
+
+.ScrollAreaThumb {
+  --color: var(--gray-8);
+  flex: 1;
+  background: var(--color);
+  border-radius: var(--scrollbar-size);
+  position: relative;
+}
+
+.ScrollAreaThumb:hover {
+  --color: var(--gray-9);
+}
+
+.ScrollAreaThumb::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.ScrollAreaCorner {
+  background: var(--gray-a8);
+}
+
+/* -------------------------------------------------------------------------- */
+/*                            Animation @keyframes                            */
+/* -------------------------------------------------------------------------- */
+
+@keyframes slideUpAndFade {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideRightAndFade {
+  from {
+    opacity: 0;
+    transform: translateX(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideDownAndFade {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideLeftAndFade {
+  from {
+    opacity: 0;
+    transform: translateX(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               Screenshot mode                              */
+/* -------------------------------------------------------------------------- */
+
+[data-screenshot-mode] {
+  & .Container {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -40%) scale(2) !important;
+  }
+}
