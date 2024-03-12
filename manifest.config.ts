@@ -54,5 +54,5 @@ export default defineManifest(async (env) => ({
       resources: ["src/assets/*"],
     },
   ],
-  permissions: ["storage", "unlimitedStorage", "activeTab", "scripting"],
+  permissions: ["storage", "unlimitedStorage", "activeTab"],
 }));
