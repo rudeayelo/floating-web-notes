@@ -1,22 +1,17 @@
-import {
-  type ReactNode,
-  createContext,
-  useState,
-  useContext,
-  useEffect,
-} from "react";
-import { useHotkeys } from "react-hotkeys-hook";
+import { type ReactNode, createContext, useState, useEffect } from "react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { getCurrentWebNotes } from "../utils/getCurrentWebNotes";
 import { type ThemeOptions, type Note, type OpenOptions } from "../types";
 
-const views = ["notes", "recordHotkey", "help"] as const;
-const defaultDefaultOpen = "with-notes";
-const defaultTheme = "light";
+const views = ["notes", "help"] as const;
+const defaultDefaultOpen: OpenOptions = "with-notes";
+const defaultTheme: ThemeOptions = "light";
 const defaultView = "notes";
 const defaultHotkey = "alt + n";
 const defaultActive = false;
 const defaultScreenshotMode = false;
+const defaultFirstTimeNoticeAck = true;
+const defaultHotkeyConflict = false;
 
 type AppContextType = {
   notes: Note[];
@@ -34,12 +29,15 @@ type AppContextType = {
     React.SetStateAction<(typeof views)[number] | undefined>
   >;
   active: boolean;
-  setActive: () => void;
+  setActive: React.Dispatch<React.SetStateAction<boolean>>;
   screenshotMode: boolean;
   setScreenshotMode: React.Dispatch<React.SetStateAction<boolean>>;
+  firstTimeNoticeAck: boolean;
+  closeFirstTimeNotice: () => void;
+  hotkeyConflict: boolean;
 };
 
-const AppContext = createContext<AppContextType>({
+export const AppContext = createContext<AppContextType>({
   notes: [],
   setNotes: () => {},
   notesById: [],
@@ -56,6 +54,9 @@ const AppContext = createContext<AppContextType>({
   setActive: () => {},
   screenshotMode: defaultScreenshotMode,
   setScreenshotMode: () => {},
+  firstTimeNoticeAck: defaultFirstTimeNoticeAck,
+  closeFirstTimeNotice: () => {},
+  hotkeyConflict: defaultHotkeyConflict,
 });
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
@@ -65,22 +66,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [defaultOpen, setDefaultOpenState] =
     useState<OpenOptions>(defaultDefaultOpen);
   const [hotkey, setHotkeyState] = useState(defaultHotkey);
-  const [active, setActiveState] = useState(defaultActive);
+  const [active, setActive] = useState(defaultActive);
   const [screenshotMode, setScreenshotMode] = useState(defaultScreenshotMode);
   const [activeView, setActiveView] = useState<
     (typeof views)[number] | undefined
   >();
+  const [firstTimeNoticeAck, setFirstTimeNoticeAckState] = useState(
+    defaultFirstTimeNoticeAck,
+  );
+  const [hotkeyConflict, setHotkeyConflict] = useState(defaultHotkeyConflict);
 
   const setHotkey = (newHotkey: string) => {
-    chrome.storage.local.set({ hotkey: newHotkey });
     setHotkeyState(newHotkey);
-  };
-
-  const setActive = () => {
-    setActiveState((active) => {
-      chrome.storage.local.set({ active: !active });
-      return !active;
-    });
   };
 
   const setDefaultOpen = (open: string) => {
@@ -97,7 +94,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  useHotkeys(hotkey, setActive);
+  const closeFirstTimeNotice = async () => {
+    setFirstTimeNoticeAckState(true);
+    await chrome.storage.local.set({ firstTimeNoticeAck: true });
+  };
 
   /*
    * This effect runs only when the app is loaded, decides if the app should be
@@ -113,17 +113,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const open = storageOpen || defaultOpen;
 
       if (!firstTimeNoticeAck) {
-        await chrome.storage.local.set({ active: true });
-        setActiveState(true);
+        setActive(true);
       } else if (
         (!active && open === "never") ||
         (!active && open === "with-notes" && !currentNotes.length)
       ) {
-        await chrome.storage.local.set({ active: false });
-        setActiveState(false);
+        setActive(false);
       } else {
-        await chrome.storage.local.set({ active: true });
-        setActiveState(true);
+        setActive(true);
       }
 
       // Keep the memory state in sync with the storage state
@@ -131,10 +128,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         .get("open")
         .then(({ open }) => (open ? setDefaultOpenState(open) : null));
 
-      // If the user clicks on the extension icon, the active state will change at
-      // the service worker level, so we need to keep the memory state in sync
-      chrome.storage.local.onChanged.addListener((changes) => {
-        if (changes.active) setActiveState(changes.active.newValue);
+      // If the user clicks on the extension icon or presses the keyboard
+      // shortcut, the active state changes accordingly
+      chrome.runtime.onMessage.addListener((msg) => {
+        if (msg.type === "toggleActive") setActive((active) => !active);
       });
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -152,15 +149,28 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     })();
   }, [active, notesById]);
 
-  /*
-   * This effect runs only when the app is loaded, decides if the app should be
-   * active or not based on the `Open by default` user setting.
-   */
   useEffect(() => {
-    chrome.storage.local
-      .get("hotkey")
-      .then(({ hotkey }) => (hotkey ? setHotkeyState(hotkey) : null));
+    (async function () {
+      const hotkeyConflict = await chrome.runtime.sendMessage({
+        type: "checkHotkeyConflict",
+      });
+      const hotkeys = await chrome.runtime.sendMessage({
+        type: "getHotkeys",
+      });
 
+      const { firstTimeNoticeAck } =
+        await chrome.storage.local.get("firstTimeNoticeAck");
+
+      if (hotkeyConflict) {
+        setHotkeyConflict(true);
+      } else {
+        setHotkey(hotkeys[0].shortcut);
+      }
+      if (!firstTimeNoticeAck) setFirstTimeNoticeAckState(false);
+    })();
+  }, []);
+
+  useEffect(() => {
     chrome.storage.local
       .get("theme")
       .then(({ theme }) => (theme ? setThemeState(theme) : null));
@@ -172,6 +182,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       chrome.storage.local
         .get()
         .then((state) => console.log("Storage state:", state));
+      console.log("Local state:", {
+        notes,
+        notesById,
+        theme,
+        defaultOpen,
+        hotkey,
+        active,
+        activeView,
+        screenshotMode,
+        firstTimeNoticeAck,
+        hotkeyConflict,
+      });
     }
   }, [active, notesById]);
   /* ----------------------------- END DEBUG STATE ---------------------------- */
@@ -195,6 +217,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setActiveView,
         screenshotMode,
         setScreenshotMode,
+        firstTimeNoticeAck,
+        closeFirstTimeNotice,
+        hotkeyConflict,
       }}
     >
       <Tooltip.Provider delayDuration={0} disableHoverableContent={true}>
@@ -202,52 +227,4 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       </Tooltip.Provider>
     </AppContext.Provider>
   );
-};
-
-export const useNotes = () => {
-  const { notes, setNotes } = useContext(AppContext);
-  return { notes, setNotes };
-};
-
-export const useNotesById = () => {
-  const { notesById, setNotesById } = useContext(AppContext);
-  return { notesById, setNotesById };
-};
-
-export const useTheme = () => {
-  const { theme, setTheme } = useContext(AppContext);
-  return { theme, setTheme };
-};
-
-export const useDefaultOpen = () => {
-  const { defaultOpen, setDefaultOpen } = useContext(AppContext);
-  return { defaultOpen, setDefaultOpen };
-};
-
-export const useHotkey = () => {
-  const { hotkey, setHotkey } = useContext(AppContext);
-  return { hotkey, setHotkey };
-};
-
-export const useActiveView = () => {
-  const { activeView, setActiveView } = useContext(AppContext);
-  return { activeView, setActiveView };
-};
-
-export const useActive = () => {
-  const { active, setActive } = useContext(AppContext);
-  return { active, setActive };
-};
-
-export const useScreenshotMode = () => {
-  const { screenshotMode, setScreenshotMode } = useContext(AppContext);
-  return { screenshotMode, setScreenshotMode };
-};
-
-export const useEnv = () => {
-  const { screenshotMode } = useContext(AppContext);
-  const isDevEnv = import.meta.env.MODE === "development";
-  const hideInProduction = !screenshotMode && isDevEnv;
-
-  return { isDevEnv, hideInProduction };
 };

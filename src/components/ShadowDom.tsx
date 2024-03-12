@@ -1,5 +1,5 @@
-import React from "react";
-import ReactDOM from "react-dom";
+import { type ReactNode, useLayoutEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 export function ShadowDom({
   parentElement,
@@ -8,17 +8,17 @@ export function ShadowDom({
 }: {
   parentElement: Element;
   position?: InsertPosition;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
-  const [shadowHost] = React.useState(() =>
+  const [shadowHost] = useState(() =>
     document.createElement("floating-web-notes"),
   );
 
-  const [shadowRoot] = React.useState(() =>
+  const [shadowRoot] = useState(() =>
     shadowHost.attachShadow({ mode: "closed" }),
   );
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     if (parentElement) {
       parentElement.insertAdjacentElement(position, shadowHost);
     }
@@ -28,5 +28,5 @@ export function ShadowDom({
     };
   }, [parentElement, shadowHost, position]);
 
-  return ReactDOM.createPortal(children, shadowRoot);
+  return createPortal(children, shadowRoot);
 }

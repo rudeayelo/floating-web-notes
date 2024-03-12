@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
 import { render } from "./utils/render";
 import { Notes } from "./components/Notes";
-import {
-  useActive,
-  useActiveView,
-  useScreenshotMode,
-} from "./components/AppContext";
-import { HotkeyRecorder } from "./components/HotkeyRecorder";
+import { useActive, useActiveView, useScreenshotMode } from "./utils/hooks";
 import styles from "./styles.css?inline";
 import { Help } from "./components/Help";
 
@@ -30,13 +25,7 @@ export const App = () => {
 
       <div id="root" {...(screenshotMode && { "data-screenshot-mode": true })}>
         <div className="Container" data-transition-state={isTransitioning}>
-          {activeView === "recordHotkey" ? (
-            <HotkeyRecorder />
-          ) : activeView === "help" ? (
-            <Help />
-          ) : (
-            <Notes />
-          )}
+          {activeView === "help" ? <Help /> : <Notes />}
         </div>
       </div>
     </>

@@ -1,12 +1,18 @@
-import { useActiveView, useHotkey } from "./AppContext";
+import { useActiveView, useHotkey } from "../utils/hooks";
+import { Alerts } from "./Alerts";
+import { Hotkey } from "./Hotkey";
 import { IconButton } from "./IconButton";
 import { ScrollArea } from "./ScrollArea";
 import { SettingsDropdown } from "./SettingsDropdown";
-import { icons } from "./icons";
 
 export const Help = () => {
   const { hotkey } = useHotkey();
   const { setActiveView } = useActiveView();
+
+  const openExtensionPage = () =>
+    chrome.runtime.sendMessage({
+      type: "openExtensionPage",
+    });
 
   return (
     <>
@@ -16,6 +22,7 @@ export const Help = () => {
       </div>
       <ScrollArea>
         <div className="Page">
+          <Alerts />
           <div className="Help">
             <div style={{ display: "flex", justifyContent: "space-around" }}>
               <img
@@ -30,15 +37,12 @@ export const Help = () => {
             </p>
             <h2>How to use</h2>
             <p>
-              It's invoked by pressing the{" "}
-              {hotkey.split(" + ").map((key, idx) => (
-                <span key={key}>
-                  <kbd>{key}</kbd>
-                  {idx <= hotkey.split(" + ").length - 2 && " + "}
-                </span>
-              ))}{" "}
-              hotkey. You can change it using the corresponding action in the{" "}
-              <span className="Icon">{icons.menu}</span> menu.
+              Open it pressing the <Hotkey>{hotkey}</Hotkey> keyboard shortcut.
+              You can change it in your{" "}
+              <button className="ButtonLink" onClick={openExtensionPage}>
+                browser's extension settings
+              </button>
+              .
             </p>
             <p>
               Once loaded, you can start adding your notes in plain text, it'll

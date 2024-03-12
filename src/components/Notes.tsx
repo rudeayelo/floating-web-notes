@@ -1,4 +1,5 @@
-import { useNotes } from "./AppContext";
+import { useNotes } from "../utils/hooks";
+import { Alerts } from "./Alerts";
 import { CreateNoteState } from "./CreateNoteState";
 import { Header } from "./Header";
 import { NoteEditor } from "./NoteEditor";
@@ -13,6 +14,7 @@ export const Notes = () => {
 
       <ScrollArea>
         <div className="Page">
+          <Alerts />
           {notes?.length > 0 ? (
             notes.map((props) => <NoteEditor key={props.id} {...props} />)
           ) : (

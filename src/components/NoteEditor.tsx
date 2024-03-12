@@ -3,7 +3,7 @@ import { useDebouncedCallback } from "use-debounce";
 import * as Popover from "@radix-ui/react-popover";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { icons } from "./icons";
-import { useNotesById } from "./AppContext";
+import { useNotesById } from "../utils/hooks";
 import ContentEditable from "react-contenteditable";
 import sanitizeHtml from "sanitize-html";
 import { globToRegExp } from "../utils/globToRegExp";

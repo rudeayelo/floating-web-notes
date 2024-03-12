@@ -8,7 +8,7 @@ import {
   useNotes,
   useScreenshotMode,
   useTheme,
-} from "./AppContext";
+} from "../utils/hooks";
 import { OpenOptions, ThemeOptions } from "../types";
 
 export const SettingsDropdown = () => {
@@ -32,15 +32,6 @@ export const SettingsDropdown = () => {
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Content className="DropdownMenuContent" align="end">
-        <DropdownMenu.Item
-          className="DropdownMenuItem"
-          onClick={() => setActiveView("recordHotkey")}
-        >
-          Modify hotkey
-        </DropdownMenu.Item>
-
-        <DropdownMenu.Separator className="DropdownMenuSeparator" />
-
         <DropdownMenu.Label className="DropdownMenuLabel">
           Open by default
         </DropdownMenu.Label>

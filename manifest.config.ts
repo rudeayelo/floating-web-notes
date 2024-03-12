@@ -40,11 +40,19 @@ export default defineManifest(async (env) => ({
   background: {
     service_worker: "src/background.ts",
   },
+  commands: {
+    _execute_action: {
+      suggested_key: {
+        default: "Alt + N",
+      },
+      description: "Toggle the Floating Web Notes window",
+    },
+  },
   web_accessible_resources: [
     {
       matches: ["http://*/*", "https://*/*", "http://*:*/*", "https://*:*/*"],
       resources: ["src/assets/*"],
     },
   ],
-  permissions: ["storage", "unlimitedStorage", "activeTab"],
+  permissions: ["storage", "unlimitedStorage", "activeTab", "scripting"],
 }));

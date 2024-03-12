@@ -1,37 +1,49 @@
-// Open the Floating Web Notes window when the extension icon is clicked
-chrome.action.onClicked.addListener((activeTab) => {
-  chrome.scripting.executeScript({
-    target: {
-      tabId: activeTab.id as number,
-    },
-    func: () => {
-      chrome.storage.local.get("active").then(async ({ active }) => {
-        await chrome.storage.local.set({ active: !active });
-        return true;
-      });
-    },
+const checkHotkeyConflict = (cb?: (arg0: boolean) => unknown) => {
+  chrome.commands.getAll((commands) => {
+    let hotkeyConflict = false;
+    const missingHotkeys = [];
+
+    for (const { name, shortcut } of commands) {
+      if (shortcut === "") {
+        missingHotkeys.push(name);
+      }
+    }
+
+    hotkeyConflict = missingHotkeys.length > 0;
+
+    cb && cb(hotkeyConflict);
   });
+};
+
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+    checkHotkeyConflict();
+  }
 });
 
-// chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-//   if (message.type === "toggleActive") {
-//     chrome.storage.session.get("active").then(async ({ active }) => {
-//       await chrome.storage.session.set({ active: !active });
-//       sendResponse({ active: !active });
-//     });
-//     return true;
-//   }
+// Open the Floating Web Notes window when the extension icon is clicked
+chrome.action.onClicked.addListener((activeTab) => {
+  chrome.tabs.sendMessage(activeTab.id as number, { type: "toggleActive" });
+});
 
-//   if (message.type === "setActive") {
-//     await chrome.storage.session.set({ active: message.value });
-//     sendResponse({ active: message.value });
-//     return true;
-//   }
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message.type === "checkHotkeyConflict") {
+    checkHotkeyConflict(sendResponse);
+    return true;
+  }
 
-//   if (message.type === "getActive") {
-//     chrome.storage.session.get("active").then(({ active }) => {
-//       sendResponse({ active });
-//     });
-//     return true;
-//   }
-// });
+  if (message.type === "getHotkeys") {
+    chrome.commands.getAll(sendResponse);
+    return true;
+  }
+
+  if (message.type === "openExtensionPage") {
+    chrome.tabs.create({ url: "chrome://extensions/shortcuts" });
+    return true;
+  }
+
+  if (message.type === "reloadExtension") {
+    chrome.runtime.reload();
+    return true;
+  }
+});
