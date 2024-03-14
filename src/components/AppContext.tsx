@@ -29,7 +29,7 @@ type AppContextType = {
     React.SetStateAction<(typeof views)[number] | undefined>
   >;
   active: boolean;
-  setActive: React.Dispatch<React.SetStateAction<boolean>>;
+  setActive: (state: boolean) => void;
   screenshotMode: boolean;
   setScreenshotMode: React.Dispatch<React.SetStateAction<boolean>>;
   firstTimeNoticeAck: boolean;
@@ -66,7 +66,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [defaultOpen, setDefaultOpenState] =
     useState<OpenOptions>(defaultDefaultOpen);
   const [hotkey, setHotkeyState] = useState(defaultHotkey);
-  const [active, setActive] = useState(defaultActive);
+  const [active, setActiveState] = useState(defaultActive);
   const [screenshotMode, setScreenshotMode] = useState(defaultScreenshotMode);
   const [activeView, setActiveView] = useState<
     (typeof views)[number] | undefined
@@ -75,6 +75,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     defaultFirstTimeNoticeAck,
   );
   const [hotkeyConflict, setHotkeyConflict] = useState(defaultHotkeyConflict);
+
+  const setActive = (active: boolean) => {
+    chrome.runtime.sendMessage({
+      type: "setVisibility",
+      value: active ? "visible" : "hidden",
+    });
+    setActiveState(active);
+  };
 
   const setHotkey = (newHotkey: string) => {
     setHotkeyState(newHotkey);
@@ -99,24 +107,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     await chrome.storage.local.set({ firstTimeNoticeAck: true });
   };
 
-  /*
-   * This effect runs only when the app is loaded, decides if the app should be
-   * active or not based on the `Open by default` user setting.
-   */
+  /* -------------------------------------------------------------------------- */
+  /*                      Initial run checks and state sync                     */
+  /* -------------------------------------------------------------------------- */
   useEffect(() => {
     // Decide if the app should be active or not on first load
-    (async function () {
+    const checkInitialVisibility = async () => {
       const currentNotes = await getCurrentWebNotes();
       const { firstTimeNoticeAck } =
         await chrome.storage.local.get("firstTimeNoticeAck");
       const { open: storageOpen } = await chrome.storage.local.get("open");
+      const initialVisibility = await chrome.runtime.sendMessage({
+        type: "getVisibility",
+      });
       const open = storageOpen || defaultOpen;
 
       if (!firstTimeNoticeAck) {
         setActive(true);
       } else if (
-        (!active && open === "never") ||
-        (!active && open === "with-notes" && !currentNotes.length)
+        (open === "never" && initialVisibility !== "visible") ||
+        (open === "with-notes" && !currentNotes.length) ||
+        initialVisibility === "hidden"
       ) {
         setActive(false);
       } else {
@@ -131,26 +142,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       // If the user clicks on the extension icon or presses the keyboard
       // shortcut, the active state changes accordingly
       chrome.runtime.onMessage.addListener((msg) => {
-        if (msg.type === "toggleActive") setActive((active) => !active);
+        if (msg.type === "toggleActive") setActiveState((active) => !active);
       });
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    };
 
-  /*
-   * This effect sets the list of notes that should be shown on the current page.
-   * Whenever the `notesById` state changes, it updates the `notes` state.
-   */
-  useEffect(() => {
-    (async function () {
-      const currentNotes = await getCurrentWebNotes();
-
-      setNotes(currentNotes);
-    })();
-  }, [active, notesById]);
-
-  useEffect(() => {
-    (async function () {
+    /* Check if the hotkey is in conflict with other extensions and if not, show
+     * the welcome message.
+     */
+    const checkAlerts = async () => {
       const hotkeyConflict = await chrome.runtime.sendMessage({
         type: "checkHotkeyConflict",
       });
@@ -167,14 +166,31 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setHotkey(hotkeys[0].shortcut);
       }
       if (!firstTimeNoticeAck) setFirstTimeNoticeAckState(false);
-    })();
+    };
+
+    // Synchonise the theme option in storage to the respective state
+    const checkTheme = async () => {
+      const { theme } = await chrome.storage.local.get("theme");
+      theme && setThemeState(theme);
+    };
+
+    checkInitialVisibility();
+    checkAlerts();
+    checkTheme();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /*
+   * This effect sets the list of notes that should be shown on the current page.
+   * Whenever the `notesById` state changes, it updates the `notes` state.
+   */
   useEffect(() => {
-    chrome.storage.local
-      .get("theme")
-      .then(({ theme }) => (theme ? setThemeState(theme) : null));
-  }, []);
+    (async function () {
+      const currentNotes = await getCurrentWebNotes();
+
+      setNotes(currentNotes);
+    })();
+  }, [active, notesById]);
 
   /* ------------------------------- DEBUG STATE ------------------------------ */
   useEffect(() => {
@@ -195,6 +211,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         hotkeyConflict,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, notesById]);
   /* ----------------------------- END DEBUG STATE ---------------------------- */
 
