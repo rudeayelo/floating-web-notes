@@ -48,7 +48,7 @@ export const useFirstTimeNoticeAck = () => {
 
 export const useEnv = () => {
   const { screenshotMode } = useContext(AppContext);
-  const isDevEnv = import.meta.env.MODE === "development";
+  const isDevEnv = import.meta.env.MODE === "development" || "screenshot";
   const hideInProduction = !screenshotMode && isDevEnv;
 
   return { isDevEnv, hideInProduction };

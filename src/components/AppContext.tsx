@@ -9,7 +9,7 @@ const defaultTheme: ThemeOptions = "light";
 const defaultView = "notes";
 const defaultHotkey = "alt + n";
 const defaultActive = false;
-const defaultScreenshotMode = false;
+const defaultScreenshotMode = import.meta.env.MODE === "screenshot";
 const defaultFirstTimeNoticeAck = true;
 const defaultHotkeyConflict = false;
 

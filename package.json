@@ -7,6 +7,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "screenshot": "concurrently --raw \"npm:screenshot:*\"",
+    "screenshot:dev": "vite --mode screenshot",
+    "screenshot:serve": "SCREENSHOT_MODE=true pnpx http-server releases/screenshots-set --port 6006 -o",
     "test": "concurrently -s=first -k --raw \"npm:test:*\"",
     "test:jest": "jest ./src",
     "test:serve": "pnpx http-server releases/screenshots-set --port 6006 --silent"
