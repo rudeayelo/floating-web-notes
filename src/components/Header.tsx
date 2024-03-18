@@ -7,7 +7,11 @@ export const Header = () => {
 
   return (
     <div className="Header">
-      <IconButton icon="close" onClick={() => setActive(false)} />
+      <IconButton
+        icon="close"
+        onClick={() => setActive(false)}
+        id="CloseButton"
+      />
       <SettingsDropdown />
     </div>
   );

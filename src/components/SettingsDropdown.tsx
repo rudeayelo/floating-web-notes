@@ -28,7 +28,7 @@ export const SettingsDropdown = () => {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
-        <IconButton icon="menu" />
+        <IconButton icon="menu" id="Settings" />
       </DropdownMenu.Trigger>
 
       <DropdownMenu.Content className="DropdownMenuContent" align="end">
@@ -42,6 +42,7 @@ export const SettingsDropdown = () => {
         >
           <DropdownMenu.RadioItem
             className="DropdownMenuRadioItem"
+            id={`open-default-option-never`}
             value="never"
             onSelect={(evt: Event) => evt.preventDefault()}
           >
@@ -52,6 +53,7 @@ export const SettingsDropdown = () => {
           </DropdownMenu.RadioItem>
           <DropdownMenu.RadioItem
             className="DropdownMenuRadioItem"
+            id={`open-default-option-always`}
             value="always"
             onSelect={(evt: Event) => evt.preventDefault()}
           >
@@ -62,6 +64,7 @@ export const SettingsDropdown = () => {
           </DropdownMenu.RadioItem>
           <DropdownMenu.RadioItem
             className="DropdownMenuRadioItem"
+            id={`open-default-option-with-notes`}
             value="with-notes"
             onSelect={(evt: Event) => evt.preventDefault()}
           >
@@ -123,6 +126,7 @@ export const SettingsDropdown = () => {
         <DropdownMenu.Item
           className="DropdownMenuItem"
           onClick={() => setActiveView("help")}
+          id="HelpMenuItem"
         >
           Help
         </DropdownMenu.Item>

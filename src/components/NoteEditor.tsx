@@ -175,6 +175,7 @@ export const NoteEditor = ({
               icon="remove"
               variant="danger"
               onClick={handleRemoveNote}
+              className="RemoveNoteButton"
             />
           </Tooltip.Trigger>
           <Tooltip.Content

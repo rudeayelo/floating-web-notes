@@ -16,4 +16,12 @@ module.exports = {
     ],
     "no-fallthrough": "off",
   },
+  overrides: [
+    {
+      files: ["content.test.ts"],
+      env: {
+        jest: true,
+      },
+    },
+  ],
 };

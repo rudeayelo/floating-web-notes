@@ -51,7 +51,10 @@ export const Alerts = () => {
             <strong>Floating Web Notes</strong> is invoked by pressing the{" "}
             <Hotkey>{hotkey}</Hotkey> keyboard shortcut. You can change it in
             your{" "}
-            <button className="ButtonLink" onClick={openExtensionPage}>
+            <button
+              className="ButtonLink BrowserExtensionSettings"
+              onClick={openExtensionPage}
+            >
               browser's extension settings
             </button>
             .
