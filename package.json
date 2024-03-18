@@ -9,10 +9,11 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "screenshot": "concurrently --raw \"npm:screenshot:*\"",
     "screenshot:dev": "vite --mode screenshot",
-    "screenshot:serve": "SCREENSHOT_MODE=true pnpx http-server releases/screenshots-set --port 6006 -o",
+    "screenshot:serve": "SCREENSHOT_MODE=true bunx http-server screenshots-set --port 6006 -o",
     "test": "concurrently -s=first -k --raw \"npm:test:*\"",
     "test:jest": "jest ./src",
-    "test:serve": "pnpx http-server releases/screenshots-set --port 6006 --silent"
+    "test:serve": "bunx http-server screenshots-set --port 6006 --silent",
+    "release": "bunx commit-and-tag-version && pnpm build && mkdir releases/floating-web-notes-$(node -p \"require('./package.json').version\") && cd dist && zip -r \"../releases/floating-web-notes-$(node -p \"require('./manifest.json').version_name\")/floating-web-notes-$(node -p \"require('./manifest.json').version_name\").zip\" *"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "2.0.6",
@@ -30,24 +31,24 @@
   "devDependencies": {
     "@crxjs/vite-plugin": "2.0.0-beta.23",
     "@jest/globals": "29.7.0",
-    "@types/chrome": "0.0.262",
+    "@types/chrome": "0.0.263",
     "@types/jest": "29.5.12",
-    "@types/react": "18.2.64",
-    "@types/react-dom": "18.2.21",
+    "@types/react": "18.2.66",
+    "@types/react-dom": "18.2.22",
     "@types/sanitize-html": "2.11.0",
-    "@typescript-eslint/eslint-plugin": "7.1.1",
-    "@typescript-eslint/parser": "7.1.1",
+    "@typescript-eslint/eslint-plugin": "7.2.0",
+    "@typescript-eslint/parser": "7.2.0",
     "@vitejs/plugin-react": "4.2.1",
     "concurrently": "8.2.2",
     "eslint": "8.57.0",
     "eslint-plugin-react-hooks": "4.6.0",
-    "eslint-plugin-react-refresh": "0.4.5",
+    "eslint-plugin-react-refresh": "0.4.6",
     "jest": "29.7.0",
     "prettier": "3.2.5",
-    "puppeteer": "22.4.1",
+    "puppeteer": "22.5.0",
     "ts-jest": "29.1.2",
     "typescript": "5.4.2",
-    "vite": "5.1.5"
+    "vite": "5.1.6"
   },
   "prettier": {}
 }
