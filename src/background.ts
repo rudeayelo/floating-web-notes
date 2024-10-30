@@ -11,7 +11,7 @@ const checkHotkeyConflict = (cb?: (arg0: boolean) => unknown) => {
 
     hotkeyConflict = missingHotkeys.length > 0;
 
-    cb && cb(hotkeyConflict);
+    cb?.(hotkeyConflict);
   });
 };
 
@@ -23,28 +23,26 @@ chrome.runtime.onInstalled.addListener((details) => {
 
 // Open the Floating Web Notes window when the extension icon is clicked
 chrome.action.onClicked.addListener((activeTab) => {
-  chrome.storage.session
-    .get("visibility")
-    .then(
-      ({
-        visibility,
-      }: {
-        [key: string]: { [key: number]: "visible" | "hidden" } | undefined;
-      }) => {
-        if (visibility && activeTab.id && visibility[activeTab.id]) {
-          chrome.storage.session.set({
-            visibility: {
-              ...visibility,
-              [activeTab.id]:
-                visibility[activeTab.id] === "visible" ? "hidden" : "visible",
-            },
-          });
-        }
-        chrome.tabs.sendMessage(activeTab.id as number, {
-          type: "toggleActive",
+  chrome.storage.session.get("visibility").then(
+    ({
+      visibility,
+    }: {
+      [key: string]: { [key: number]: "visible" | "hidden" } | undefined;
+    }) => {
+      if (visibility && activeTab.id && visibility[activeTab.id]) {
+        chrome.storage.session.set({
+          visibility: {
+            ...visibility,
+            [activeTab.id]:
+              visibility[activeTab.id] === "visible" ? "hidden" : "visible",
+          },
         });
-      },
-    );
+      }
+      chrome.tabs.sendMessage(activeTab.id as number, {
+        type: "toggleActive",
+      });
+    },
+  );
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -69,43 +67,39 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "getVisibility") {
-    chrome.storage.session
-      .get("visibility")
-      .then(
-        ({
-          visibility,
-        }: {
-          [key: string]: { [key: number]: "visible" | "hidden" } | undefined;
-        }) => {
-          sendResponse(
-            visibility && sender.tab?.id && visibility[sender.tab?.id],
-          );
-        },
-      );
+    chrome.storage.session.get("visibility").then(
+      ({
+        visibility,
+      }: {
+        [key: string]: { [key: number]: "visible" | "hidden" } | undefined;
+      }) => {
+        sendResponse(
+          visibility && sender.tab?.id && visibility[sender.tab?.id],
+        );
+      },
+    );
     return true;
   }
 
   if (message.type === "setVisibility") {
-    chrome.storage.session
-      .get("visibility")
-      .then(
-        ({
-          visibility,
-        }: {
-          [key: string]: { [key: number]: "visible" | "hidden" } | undefined;
-        }) => {
-          if (!visibility && sender.tab?.id) {
-            chrome.storage.session.set({
-              visibility: { [sender.tab?.id]: message.value },
-            });
-          }
-          if (visibility && sender.tab?.id) {
-            chrome.storage.session.set({
-              visibility: { ...visibility, [sender.tab?.id]: message.value },
-            });
-          }
-        },
-      );
+    chrome.storage.session.get("visibility").then(
+      ({
+        visibility,
+      }: {
+        [key: string]: { [key: number]: "visible" | "hidden" } | undefined;
+      }) => {
+        if (!visibility && sender.tab?.id) {
+          chrome.storage.session.set({
+            visibility: { [sender.tab?.id]: message.value },
+          });
+        }
+        if (visibility && sender.tab?.id) {
+          chrome.storage.session.set({
+            visibility: { ...visibility, [sender.tab?.id]: message.value },
+          });
+        }
+      },
+    );
     return true;
   }
 });

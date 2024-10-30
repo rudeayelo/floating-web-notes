@@ -1,4 +1,3 @@
-/* eslint-disable no-case-declarations */
 export const globToRegExp = (
   glob: string,
   opts?: { globstar?: boolean; extended?: boolean; flags?: string },

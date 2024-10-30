@@ -1,7 +1,7 @@
-import { type ReactNode, createContext, useState, useEffect } from "react";
 import * as Tooltip from "@radix-ui/react-tooltip";
+import { type ReactNode, createContext, useEffect, useState } from "react";
+import type { Note, OpenOptions, ThemeOptions } from "../types";
 import { getCurrentWebNotes } from "../utils/getCurrentWebNotes";
-import { type ThemeOptions, type Note, type OpenOptions } from "../types";
 
 const views = ["notes", "help"] as const;
 const defaultDefaultOpen: OpenOptions = "with-notes";
@@ -110,6 +110,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   /* -------------------------------------------------------------------------- */
   /*                      Initial run checks and state sync                     */
   /* -------------------------------------------------------------------------- */
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     // Decide if the app should be active or not on first load
     const checkInitialVisibility = async () => {
@@ -177,15 +178,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     checkInitialVisibility();
     checkAlerts();
     checkTheme();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /*
    * This effect sets the list of notes that should be shown on the current page.
    * Whenever the `notesById` state changes, it updates the `notes` state.
    */
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
-    (async function () {
+    (async () => {
       const currentNotes = await getCurrentWebNotes();
 
       setNotes(currentNotes);
@@ -193,6 +195,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [active, notesById]);
 
   /* ------------------------------- DEBUG STATE ------------------------------ */
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (import.meta.env.MODE === "development") {
       chrome.storage.local
@@ -211,7 +214,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         hotkeyConflict,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, notesById]);
   /* ----------------------------- END DEBUG STATE ---------------------------- */
 

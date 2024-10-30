@@ -39,7 +39,11 @@ export const Help = () => {
             <p>
               Open it pressing the <Hotkey>{hotkey}</Hotkey> keyboard shortcut.
               You can change it in your{" "}
-              <button className="ButtonLink" onClick={openExtensionPage}>
+              <button
+                type="button"
+                className="ButtonLink"
+                onClick={openExtensionPage}
+              >
                 browser's extension settings
               </button>
               .

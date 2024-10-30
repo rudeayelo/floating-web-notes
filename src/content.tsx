@@ -1,9 +1,9 @@
 import "./font-face.css";
 import { useState } from "react";
-import { render } from "./utils/render";
+import { App } from "./App";
 import { AppProvider } from "./components/AppContext";
 import { ShadowDom } from "./components/ShadowDom";
-import { App } from "./App";
+import { render } from "./utils/render";
 
 export const FloatingWebNotes = () => {
   const [parentElement] = useState(() => document.querySelector("body"));

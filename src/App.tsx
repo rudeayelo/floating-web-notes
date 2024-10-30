@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { render } from "./utils/render";
-import { Notes } from "./components/Notes";
-import { useActive, useActiveView, useScreenshotMode } from "./utils/hooks";
-import styles from "./styles.css?inline";
 import { Help } from "./components/Help";
+import { Notes } from "./components/Notes";
+import styles from "./styles.css?inline";
+import { useActive, useActiveView, useScreenshotMode } from "./utils/hooks";
+import { render } from "./utils/render";
 
 export const App = () => {
   const { active } = useActive();

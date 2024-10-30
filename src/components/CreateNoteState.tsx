@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid";
-import { icons } from "./icons";
-import { useNotesById } from "../utils/hooks";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useNotesById } from "../utils/hooks";
+import { icons } from "./icons";
 
 export const CreateNoteState = () => {
   const { setNotesById } = useNotesById();
@@ -22,8 +22,7 @@ export const CreateNoteState = () => {
       pattern,
     };
 
-    const newNotesById =
-      notesById && notesById.length ? [...notesById, id] : [id];
+    const newNotesById = notesById?.length ? [...notesById, id] : [id];
 
     await chrome.storage.local.set({ [id]: newNote });
     await chrome.storage.local.set({ notesById: newNotesById });
@@ -35,6 +34,7 @@ export const CreateNoteState = () => {
     <>
       <div className="EmptyNotesLabel">Add a new note…</div>
       <button
+        type="button"
         className="NewWholeWebsiteNote NewNoteButton"
         onClick={() => createNote()}
       >
@@ -45,6 +45,7 @@ export const CreateNoteState = () => {
         </span>
       </button>
       <button
+        type="button"
         className="NewExactPatternNote NewNoteButton"
         onClick={() => createNote({ exact: true })}
       >

@@ -1,14 +1,14 @@
-import { ComponentProps, useEffect, useRef, useState } from "react";
-import { useDebouncedCallback } from "use-debounce";
 import * as Popover from "@radix-ui/react-popover";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import { icons } from "./icons";
-import { useNotesById } from "../utils/hooks";
+import { type ComponentProps, useEffect, useRef, useState } from "react";
 import ContentEditable from "react-contenteditable";
 import sanitizeHtml from "sanitize-html";
+import { useDebouncedCallback } from "use-debounce";
+import type { Note } from "../types";
 import { globToRegExp } from "../utils/globToRegExp";
+import { useNotesById } from "../utils/hooks";
 import { IconButton } from "./IconButton";
-import { Note } from "../types";
+import { icons } from "./icons";
 
 export type NoteProps = ComponentProps<"div"> & Note;
 
@@ -114,7 +114,7 @@ export const NoteEditor = ({
       <div className="NoteFooter">
         <Popover.Root>
           <Popover.Trigger asChild>
-            <button className="GhostButton URLPatternButton">
+            <button type="button" className="GhostButton URLPatternButton">
               {icons.globe}{" "}
               <span className="URLPatternButtonText">{URLPattern}</span>
             </button>
@@ -145,6 +145,7 @@ export const NoteEditor = ({
               </div>
               <Popover.Close aria-label="Save" asChild>
                 <button
+                  type="button"
                   className="URLPatternSaveButton"
                   onClick={handleURLPatternSave}
                 >
@@ -157,6 +158,7 @@ export const NoteEditor = ({
                 This pattern won't match the current tab,{" "}
                 <Popover.Close aria-label="Undo changes" asChild>
                   <button
+                    type="button"
                     className="URLPatternUndoChangeButton"
                     onClick={resetURLPattern}
                   >

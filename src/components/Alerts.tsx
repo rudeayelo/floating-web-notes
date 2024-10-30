@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { icons } from "./icons";
 import { useFirstTimeNoticeAck, useHotkey } from "../utils/hooks";
 import { Hotkey } from "./Hotkey";
+import { icons } from "./icons";
 
 export const Alerts = () => {
   const { firstTimeNoticeAck, closeFirstTimeNotice } = useFirstTimeNoticeAck();
@@ -30,7 +30,11 @@ export const Alerts = () => {
           <p>
             The <strong>Floating Web Notes</strong> keyboard shortcut couldn't
             be set. Please visit your{" "}
-            <button className="ButtonLink" onClick={openExtensionPage}>
+            <button
+              type="button"
+              className="ButtonLink"
+              onClick={openExtensionPage}
+            >
               browser's extension settings
             </button>{" "}
             to change it.
@@ -52,6 +56,7 @@ export const Alerts = () => {
             <Hotkey>{hotkey}</Hotkey> keyboard shortcut. You can change it in
             your{" "}
             <button
+              type="button"
               className="ButtonLink BrowserExtensionSettings"
               onClick={openExtensionPage}
             >
@@ -59,7 +64,11 @@ export const Alerts = () => {
             </button>
             .
           </p>
-          <button className="AlertActionButton" onClick={closeFirstTimeNotice}>
+          <button
+            type="button"
+            className="AlertActionButton"
+            onClick={closeFirstTimeNotice}
+          >
             {icons.check} Got it!
           </button>
         </div>

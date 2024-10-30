@@ -1,5 +1,5 @@
-import { type ReactNode } from "react";
 import * as RadixScrollArea from "@radix-ui/react-scroll-area";
+import type { ReactNode } from "react";
 
 export const ScrollArea = ({ children }: { children: ReactNode }) => (
   <RadixScrollArea.Root className="ScrollAreaRoot">

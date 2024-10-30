@@ -1,4 +1,4 @@
-import puppeteer, { Browser, Page } from "puppeteer";
+import puppeteer, { type Browser, type Page } from "puppeteer";
 
 const EXTENSION_PATH = "dist";
 const HOST_URL = "localhost:6006";
@@ -67,7 +67,7 @@ const getSelector = async (page: Page, selector: string) => {
 };
 
 const sleep = async (time: number) => {
-  return new Promise(function (resolve) {
+  return new Promise((resolve) => {
     setTimeout(resolve, time);
   });
 };
@@ -157,7 +157,7 @@ describe("when the keyboard shortcut is correctly registered", () => {
 
   describe(`when the "Open by default" setting is set to...`, () => {
     describe(`..."Never"`, () => {
-      test(`the main window is hidden on page load`, async () => {
+      test("the main window is hidden on page load", async () => {
         const page = await loadPage();
         await dismissOnboarding(page);
 
@@ -174,7 +174,7 @@ describe("when the keyboard shortcut is correctly registered", () => {
     });
 
     describe(`..."On every website"`, () => {
-      test(`the main window is visible on page load`, async () => {
+      test("the main window is visible on page load", async () => {
         const page = await loadPage();
         await dismissOnboarding(page);
 
@@ -189,7 +189,7 @@ describe("when the keyboard shortcut is correctly registered", () => {
     });
 
     describe(`..."Only when there's a note"`, () => {
-      test(`with no notes, the main window is hidden`, async () => {
+      test("with no notes, the main window is hidden", async () => {
         const page = await loadPage();
         await dismissOnboarding(page);
 
@@ -204,7 +204,7 @@ describe("when the keyboard shortcut is correctly registered", () => {
         expect(fwb).toBeFalsy();
       });
 
-      test(`with notes, the main window is visible`, async () => {
+      test("with notes, the main window is visible", async () => {
         const page = await loadPage();
         await dismissOnboarding(page);
 
@@ -331,7 +331,7 @@ describe("when the keyboard shortcut is correctly registered", () => {
       expect(noteEditorText).toContain(text);
     });
 
-    test(`it can be removed`, async () => {
+    test("it can be removed", async () => {
       const page = await loadPage();
       await dismissOnboarding(page);
 

@@ -1,4 +1,4 @@
-import { Note } from "../types";
+import type { Note } from "../types";
 import { globToRegExp } from "./globToRegExp";
 
 export const getCurrentWebNotes = async () => {

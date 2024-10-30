@@ -138,14 +138,17 @@ h6 {
   --color-text-danger: var(--red-11);
 
   /* Depth/Shadow */
-  --shadow-depth-1: 0px 2px 1px rgba(0 0 0 / 0.01),
+  --shadow-depth-1:
+    0px 2px 1px rgba(0 0 0 / 0.01),
     0px 4px 2px rgba(0 0 0 / 0.02), 0px 0px 4px rgba(0 0 0 / 0.032),
     0px 2px 3px rgba(0 0 0 / 0.05), 0px 4px 15px rgba(0 0 0 / 0.08);
-  --shadow-depth-2: 0px 0px 1px rgba(0 0 0 / 0.15),
+  --shadow-depth-2:
+    0px 0px 1px rgba(0 0 0 / 0.15),
     0px 6px 1.6px rgba(0 0 0 / 0.01), 0px 8px 4px rgba(0 0 0 / 0.02),
     0px 0px 8px rgba(0 0 0 / 0.032), 0px 4px 6px rgba(0 0 0 / 0.05),
     0px 9px 30px rgba(0 0 0 / 0.08);
-  --shadow-depth-3: inset 0px 300px 300px 0px rgba(255 255 255 / 0.4),
+  --shadow-depth-3:
+    inset 0px 300px 300px 0px rgba(255 255 255 / 0.4),
     inset 0 0 0 1px rgba(255 255 255 / 0.6),
     inset 0px -1px 1px rgba(0 0 0 / 0.18), 0px 0px 1px rgba(0 0 0 / 0.2),
     0px 8.3px 1.6px rgba(0 0 0 / 0.01), 0px 10.1px 4.2px rgba(0 0 0 / 0.02),
@@ -182,9 +185,8 @@ h6 {
   color: var(--color-text-primary);
   box-shadow: var(--shadow-depth-3);
   backdrop-filter: blur(20px);
-  transition:
-    opacity 0.1s var(--animation-timing-function),
-    transform 0.15s var(--animation-timing-function);
+  transition: opacity 0.1s var(--animation-timing-function), transform 0.15s
+    var(--animation-timing-function);
 
   &[data-transition-state="true"] {
     opacity: 1;

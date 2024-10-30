@@ -1,6 +1,5 @@
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { IconButton } from "./IconButton";
-import { icons } from "./icons";
+import type { OpenOptions, ThemeOptions } from "../types";
 import {
   useActiveView,
   useDefaultOpen,
@@ -9,7 +8,8 @@ import {
   useScreenshotMode,
   useTheme,
 } from "../utils/hooks";
-import { OpenOptions, ThemeOptions } from "../types";
+import { IconButton } from "./IconButton";
+import { icons } from "./icons";
 
 export const SettingsDropdown = () => {
   const { defaultOpen, setDefaultOpen } = useDefaultOpen();
@@ -42,7 +42,7 @@ export const SettingsDropdown = () => {
         >
           <DropdownMenu.RadioItem
             className="DropdownMenuRadioItem"
-            id={`open-default-option-never`}
+            id="open-default-option-never"
             value="never"
             onSelect={(evt: Event) => evt.preventDefault()}
           >
@@ -53,7 +53,7 @@ export const SettingsDropdown = () => {
           </DropdownMenu.RadioItem>
           <DropdownMenu.RadioItem
             className="DropdownMenuRadioItem"
-            id={`open-default-option-always`}
+            id="open-default-option-always"
             value="always"
             onSelect={(evt: Event) => evt.preventDefault()}
           >
@@ -64,7 +64,7 @@ export const SettingsDropdown = () => {
           </DropdownMenu.RadioItem>
           <DropdownMenu.RadioItem
             className="DropdownMenuRadioItem"
-            id={`open-default-option-with-notes`}
+            id="open-default-option-with-notes"
             value="with-notes"
             onSelect={(evt: Event) => evt.preventDefault()}
           >

@@ -11,9 +11,7 @@ export default defineManifest(async (env) => ({
   name:
     env.mode === "staging" ? "[Dev] Floating Web Notes" : "Floating Web Notes",
   description: "Attach text notes to web pages",
-  author: {
-    email: "info@rudeworks.com",
-  },
+  author: "info@rudeworks.com",
   version: `${major}.${minor}.${patch}.${label}`,
   version_name: version,
   icons: {
