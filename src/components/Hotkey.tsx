@@ -1,9 +1,16 @@
 import { Fragment } from "react";
 
-export const Hotkey = ({ children }: { children: string }) =>
-  children.split("").map((key, idx) => (
+interface HotkeyProps {
+  children: string;
+}
+
+export const Hotkey = ({ children }: HotkeyProps) => {
+  const keys = children.split("+");
+
+  return keys.map((key, index) => (
     <Fragment key={key}>
       <kbd>{key}</kbd>
-      {idx <= children.length - 2 && " + "}
+      {index < keys.length - 1 && " + "}
     </Fragment>
   ));
+};
