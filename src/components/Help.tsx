@@ -76,8 +76,8 @@ export const Help = () => {
               This is mostly a personal project built primarily for my own
               usage, so I'll keep the feature set light, if you'd like to give
               some feedback, do it by mentioning or DMing{" "}
-              <a href="https://x.com/Rude" title="Rude on X">
-                @Rude on X
+              <a href="https://x.com/RudeAyelo" title="RudeAyelo on X">
+                @RudeAyelo on X
               </a>
               .
             </p>
