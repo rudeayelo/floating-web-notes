@@ -14,7 +14,7 @@
     "test": "concurrently -s=first -k --raw \"npm:test:*\"",
     "test:jest": "jest ./src",
     "test:serve": "bunx http-server screenshots-set --port 6006 --silent",
-    "release": "pnpm build && mkdir releases/floating-web-notes-$(node -p \"require('./package.json').version\") && cd dist && zip -r \"../releases/floating-web-notes-$(node -p \"require('./manifest.json').version_name\")/floating-web-notes-$(node -p \"require('./manifest.json').version_name\").zip\" * && bunx commit-and-tag-version"
+    "release": "bunx commit-and-tag-version && pnpm build && mkdir releases/floating-web-notes-$(node -p \"require('./package.json').version\") && cd dist && zip -r \"../releases/floating-web-notes-$(node -p \"require('./manifest.json').version_name\")/floating-web-notes-$(node -p \"require('./manifest.json').version_name\").zip\" *"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "2.1.2",

@@ -1,5 +1,5 @@
-import { useContext } from "react";
-import { AppContext } from "../components/AppContext";
+import { useContext } from 'react';
+import { AppContext } from '../components/AppContext';
 
 export const useNotes = () => {
   const { notes, setNotes } = useContext(AppContext);
@@ -47,9 +47,10 @@ export const useFirstTimeNoticeAck = () => {
 };
 
 export const useEnv = () => {
-  const { screenshotMode } = useContext(AppContext);
-  const isDevEnv = import.meta.env.MODE === "development" || "screenshot";
-  const hideInProduction = !screenshotMode && isDevEnv;
+  const isDevEnv = import.meta.env.DEV;
+  const isProdEnv = import.meta.env.PROD;
+  console.log('isDevEnv', isDevEnv);
+  console.log('isProdEnv', isProdEnv);
 
-  return { isDevEnv, hideInProduction };
+  return { isDevEnv, isProdEnv };
 };
