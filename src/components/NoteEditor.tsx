@@ -1,6 +1,7 @@
 import * as Popover from "@radix-ui/react-popover";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import { type ComponentProps, useEffect, useRef, useState } from "react";
+import type { ComponentProps } from "react";
+import { useEffect, useRef, useState } from "react";
 import ContentEditable from "react-contenteditable";
 import sanitizeHtml from "sanitize-html";
 import { useDebouncedCallback } from "use-debounce";

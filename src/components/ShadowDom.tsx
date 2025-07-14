@@ -1,10 +1,11 @@
-import { type ReactNode, useLayoutEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { useEnv } from '../utils/hooks';
+import type { ReactNode } from "react";
+import { useLayoutEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { useEnv } from "../utils/hooks";
 
 export function ShadowDom({
   parentElement,
-  position = 'afterend',
+  position = "afterend",
   children,
 }: {
   parentElement: Element;
@@ -13,11 +14,11 @@ export function ShadowDom({
 }) {
   const { isDevEnv } = useEnv();
   const [shadowHost] = useState(() =>
-    document.createElement('floating-web-notes')
+    document.createElement("floating-web-notes"),
   );
 
   const [shadowRoot] = useState(() =>
-    shadowHost.attachShadow({ mode: isDevEnv ? 'open' : 'closed' })
+    shadowHost.attachShadow({ mode: isDevEnv ? "open" : "closed" }),
   );
 
   useLayoutEffect(() => {

@@ -1,7 +1,9 @@
 import * as Tooltip from "@radix-ui/react-tooltip";
-import { type ReactNode, createContext, useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import { createContext, useEffect, useState } from "react";
 import type { Note, OpenOptions, ThemeOptions } from "../types";
 import { getCurrentWebNotes } from "../utils/getCurrentWebNotes";
+import { useEnv } from "../utils/hooks";
 
 const views = ["notes", "help"] as const;
 const defaultDefaultOpen: OpenOptions = "with-notes";
@@ -60,6 +62,7 @@ export const AppContext = createContext<AppContextType>({
 });
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const { isDevEnv } = useEnv();
   const [notes, setNotes] = useState<Note[]>([]);
   const [notesById, setNotesById] = useState<string[]>([]);
   const [theme, setThemeState] = useState<ThemeOptions>();
@@ -110,13 +113,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   /* -------------------------------------------------------------------------- */
   /*                      Initial run checks and state sync                     */
   /* -------------------------------------------------------------------------- */
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies: dependencies are intentionally excluded
   useEffect(() => {
     // Decide if the app should be active or not on first load
     const checkInitialVisibility = async () => {
       const currentNotes = await getCurrentWebNotes();
-      const { firstTimeNoticeAck } =
-        await chrome.storage.local.get("firstTimeNoticeAck");
+      const firstTimeNoticeAck = await chrome.runtime.sendMessage({
+        type: "getFirstTimeNoticeAck",
+      });
       const { open: storageOpen } = await chrome.storage.local.get("open");
       const initialVisibility = await chrome.runtime.sendMessage({
         type: "getVisibility",
@@ -158,8 +162,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         type: "getHotkeys",
       });
 
-      const { firstTimeNoticeAck } =
-        await chrome.storage.local.get("firstTimeNoticeAck");
+      const firstTimeNoticeAck = await chrome.runtime.sendMessage({
+        type: "getFirstTimeNoticeAck",
+      });
 
       if (hotkeyConflict) {
         setHotkeyConflict(true);
@@ -185,7 +190,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
    * Whenever the `notesById` state changes, it updates the `notes` state.
    */
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies: dependencies are intentionally excluded for performance
   useEffect(() => {
     (async () => {
       const currentNotes = await getCurrentWebNotes();
@@ -195,9 +200,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [active, notesById]);
 
   /* ------------------------------- DEBUG STATE ------------------------------ */
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  // biome-ignore lint/correctness/useExhaustiveDependencies: debug logging with intentionally limited dependencies
   useEffect(() => {
-    if (import.meta.env.MODE === "development") {
+    if (isDevEnv) {
       chrome.storage.local
         .get()
         .then((state) => console.log("Storage state:", state));

@@ -1,5 +1,5 @@
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import type { OpenOptions, ThemeOptions } from '../types';
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import type { OpenOptions, ThemeOptions } from "../types";
 import {
   useActiveView,
   useDefaultOpen,
@@ -7,9 +7,9 @@ import {
   useNotes,
   useScreenshotMode,
   useTheme,
-} from '../utils/hooks';
-import { IconButton } from './IconButton';
-import { icons } from './icons';
+} from "../utils/hooks";
+import { IconButton } from "./IconButton";
+import { icons } from "./icons";
 
 export const SettingsDropdown = () => {
   const { defaultOpen, setDefaultOpen } = useDefaultOpen();
@@ -22,7 +22,7 @@ export const SettingsDropdown = () => {
   const handleNuke = async () => {
     await chrome.storage.local.clear();
     setNotes([]);
-    setActiveView('notes');
+    setActiveView("notes");
   };
 
   return (
@@ -125,7 +125,7 @@ export const SettingsDropdown = () => {
 
         <DropdownMenu.Item
           className="DropdownMenuItem"
-          onClick={() => setActiveView('help')}
+          onClick={() => setActiveView("help")}
           id="HelpMenuItem"
         >
           Help

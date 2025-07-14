@@ -185,8 +185,9 @@ h6 {
   color: var(--color-text-primary);
   box-shadow: var(--shadow-depth-3);
   backdrop-filter: blur(20px);
-  transition: opacity 0.1s var(--animation-timing-function), transform 0.15s
-    var(--animation-timing-function);
+  transition:
+    opacity 0.1s var(--animation-timing-function),
+    transform 0.15s var(--animation-timing-function);
 
   &[data-transition-state="true"] {
     opacity: 1;
@@ -458,7 +459,6 @@ code {
   color: var(--color-text-primary);
   background: var(--gray-a3);
   border-radius: 4px;
-  display: flex;
   align-items: center;
   padding: 6px 12px;
   padding-inline-start: 8px;

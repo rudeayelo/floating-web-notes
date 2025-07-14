@@ -37,8 +37,8 @@ export const Help = () => {
             </p>
             <h2>How to use</h2>
             <p>
-              Open it pressing the <Hotkey>{hotkey}</Hotkey> keyboard shortcut.
-              You can change it in your{" "}
+              Open the notes panel using the <Hotkey>{hotkey}</Hotkey> keyboard
+              shortcut. You can change it in your{" "}
               <button
                 type="button"
                 className="ButtonLink"
@@ -55,10 +55,10 @@ export const Help = () => {
             </p>
             <p>
               The notes you write will be attached to the website where the{" "}
-              <strong>Floating Web Notes</strong> window was invoked on; notice
-              the pattern below the text when the mouse cursor is over it, if
-              you click on it you can edit said pattern to make it match other
-              parts of the website (<strong>pro tip:</strong> it accepts a{" "}
+              <strong>Floating Web Notes</strong> panel is on; notice the
+              pattern below the text when the mouse cursor is over it, if you
+              click on it you can edit it to make it match other parts of the
+              website (<strong>pro tip:</strong> it accepts a{" "}
               <a
                 href="https://en.wikipedia.org/wiki/Glob_(programming)"
                 title="glob in Wikipedia"
@@ -69,7 +69,7 @@ export const Help = () => {
             </p>
             <p>
               If multiple note patterns match a page, all matching notes will be
-              shown on screen.
+              shown.
             </p>
             <h2>Feedback</h2>
             <p>
