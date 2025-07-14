@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:dev": "NODE_ENV=development pnpm run build",
     "lint": "biome check ./src --no-errors-on-unmatched",
     "lint:staged": "biome check ./src --staged --no-errors-on-unmatched --write",
     "screenshot": "concurrently --raw \"npm:screenshot:*\"",
