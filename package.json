@@ -20,12 +20,12 @@
     "@radix-ui/react-popover": "1.1.14",
     "@radix-ui/react-scroll-area": "1.2.9",
     "@radix-ui/react-tooltip": "1.2.7",
+    "dompurify": "3.2.6",
     "nanoid": "5.1.5",
-    "react": "18.3.1",
+    "react": "19.1.0",
     "react-contenteditable": "3.3.7",
-    "react-dom": "18.3.1",
-    "react-hotkeys-hook": "4.5.1",
-    "sanitize-html": "2.17.0",
+    "react-dom": "19.1.0",
+    "react-hotkeys-hook": "5.1.0",
     "use-debounce": "10.0.5"
   },
   "devDependencies": {
@@ -34,12 +34,12 @@
     "@playwright/test": "1.54.1",
     "@types/chrome": "0.1.0",
     "@types/node": "24.0.13",
-    "@types/react": "18.3.12",
-    "@types/react-dom": "18.3.1",
+    "@types/react": "19.1.8",
+    "@types/react-dom": "19.1.6",
     "@types/sanitize-html": "2.16.0",
     "@vitejs/plugin-react": "4.6.0",
     "concurrently": "9.2.0",
     "typescript": "5.8.3",
-    "vite": "5.4.10"
+    "vite": "7.0.4"
   }
 }

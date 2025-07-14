@@ -1,9 +1,9 @@
 import * as Popover from "@radix-ui/react-popover";
 import * as Tooltip from "@radix-ui/react-tooltip";
+import DOMPurify from "dompurify";
 import type { ComponentProps } from "react";
 import { useEffect, useRef, useState } from "react";
 import ContentEditable from "react-contenteditable";
-import sanitizeHtml from "sanitize-html";
 import { useDebouncedCallback } from "use-debounce";
 import type { Note } from "../types";
 import { globToRegExp } from "../utils/globToRegExp";
@@ -22,7 +22,7 @@ export const NoteEditor = ({
   ...props
 }: NoteProps) => {
   const { setNotesById } = useNotesById();
-  const editorRef = useRef();
+  const editorRef = useRef(null);
   const [noteText, setNoteText] = useState(text);
   const [URLPattern, setURLPattern] = useState(pattern);
   const [URLPatternWarning, setURLPatternWarning] = useState(false);
@@ -49,9 +49,9 @@ export const NoteEditor = ({
 
   const handleInput = useDebouncedCallback(
     async (text) => {
-      const sanitizedText = sanitizeHtml(text, {
-        allowedTags: ["b", "i", "em", "strong", "p", "u", "a"],
-        allowedAttributes: { a: ["href"] },
+      const sanitizedText = DOMPurify.sanitize(text, {
+        ALLOWED_TAGS: ["b", "i", "em", "strong", "p", "u", "a"],
+        ALLOWED_ATTR: ["href"],
       });
 
       await chrome.storage.local.set({
@@ -85,9 +85,9 @@ export const NoteEditor = ({
       [id]: {
         id,
         pattern: URLPattern,
-        text: sanitizeHtml(note[id].text, {
-          allowedTags: ["b", "i", "em", "strong", "p", "u", "a"],
-          allowedAttributes: { a: ["href"] },
+        text: DOMPurify.sanitize(note[id].text, {
+          ALLOWED_TAGS: ["b", "i", "em", "strong", "p", "u", "a"],
+          ALLOWED_ATTR: ["href"],
         }),
       },
     });
