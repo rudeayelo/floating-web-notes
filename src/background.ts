@@ -85,22 +85,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  if (message.type === "getFirstTimeNoticeAck") {
-    chrome.storage.local
-      .get("firstTimeNoticeAck")
-      .then(
-        ({ firstTimeNoticeAck }: { [key: string]: boolean | undefined }) => {
-          sendResponse(firstTimeNoticeAck || false);
-        },
-      );
-    return true;
-  }
-
-  if (message.type === "setFirstTimeNoticeAck") {
-    chrome.storage.local.set("firstTimeNoticeAck", message.value);
-    return true;
-  }
-
   if (message.type === "setVisibility") {
     chrome.storage.session
       .get("visibility")
@@ -122,6 +106,46 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           }
         },
       );
+    return true;
+  }
+
+  if (message.type === "getOpenDefault") {
+    chrome.storage.local.get("open").then(({ open }) => {
+      sendResponse(open);
+    });
+    return true;
+  }
+
+  if (message.type === "setOpenDefault") {
+    chrome.storage.local.set({ open: message.value });
+    return true;
+  }
+
+  if (message.type === "getTheme") {
+    chrome.storage.local.get("theme").then(({ theme }) => {
+      sendResponse(theme);
+    });
+    return true;
+  }
+
+  if (message.type === "setTheme") {
+    chrome.storage.local.set({ theme: message.theme });
+    return true;
+  }
+
+  if (message.type === "getFirstTimeNoticeAck") {
+    chrome.storage.local
+      .get("firstTimeNoticeAck")
+      .then(
+        ({ firstTimeNoticeAck }: { [key: string]: boolean | undefined }) => {
+          sendResponse(firstTimeNoticeAck || false);
+        },
+      );
+    return true;
+  }
+
+  if (message.type === "setFirstTimeNoticeAck") {
+    chrome.storage.local.set({ firstTimeNoticeAck: message.value });
     return true;
   }
 });

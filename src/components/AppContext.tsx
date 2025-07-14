@@ -65,7 +65,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const { isDevEnv } = useEnv();
   const [notes, setNotes] = useState<Note[]>([]);
   const [notesById, setNotesById] = useState<string[]>([]);
-  const [theme, setThemeState] = useState<ThemeOptions>();
+  const [theme, setThemeState] = useState<ThemeOptions>(defaultTheme);
   const [defaultOpen, setDefaultOpenState] =
     useState<OpenOptions>(defaultDefaultOpen);
   const [hotkey, setHotkeyState] = useState(defaultHotkey);
@@ -93,14 +93,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const setDefaultOpen = (open: string) => {
     if (open === "never" || open === "always" || open === "with-notes") {
-      chrome.storage.local.set({ open });
+      chrome.runtime.sendMessage({ type: "setOpenDefault", value: open });
       setDefaultOpenState(open);
     }
   };
 
   const setTheme = (theme: string) => {
     if (theme === "light" || theme === "dark" || theme === "system") {
-      chrome.storage.local.set({ theme });
+      chrome.runtime.sendMessage({ type: "setTheme", theme });
       setThemeState(theme);
     }
   };
@@ -121,7 +121,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const firstTimeNoticeAck = await chrome.runtime.sendMessage({
         type: "getFirstTimeNoticeAck",
       });
-      const { open: storageOpen } = await chrome.storage.local.get("open");
+      const storageOpen = await chrome.runtime.sendMessage({
+        type: "getOpenDefault",
+      });
       const initialVisibility = await chrome.runtime.sendMessage({
         type: "getVisibility",
       });
@@ -140,9 +142,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // Keep the memory state in sync with the storage state
-      chrome.storage.local
-        .get("open")
-        .then(({ open }) => (open ? setDefaultOpenState(open) : null));
+      chrome.runtime.sendMessage({ type: "getOpenDefault" }, (open) => {
+        if (open) setDefaultOpenState(open);
+      });
 
       // If the user clicks on the extension icon or presses the keyboard
       // shortcut, the active state changes accordingly
@@ -151,38 +153,41 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       });
     };
 
-    /* Check if the hotkey is in conflict with other extensions and if not, show
-     * the welcome message.
-     */
-    const checkAlerts = async () => {
-      const hotkeyConflict = await chrome.runtime.sendMessage({
-        type: "checkHotkeyConflict",
-      });
-      const hotkeys = await chrome.runtime.sendMessage({
-        type: "getHotkeys",
-      });
-
-      const firstTimeNoticeAck = await chrome.runtime.sendMessage({
-        type: "getFirstTimeNoticeAck",
-      });
-
-      if (hotkeyConflict) {
-        setHotkeyConflict(true);
-      } else {
-        setHotkey(hotkeys[0].shortcut);
-      }
-      if (!firstTimeNoticeAck) setFirstTimeNoticeAckState(false);
+    const getTheme = async () => {
+      const theme = await chrome.runtime.sendMessage({ type: "getTheme" });
+      if (theme) setThemeState(theme);
     };
 
-    // Synchonise the theme option in storage to the respective state
-    const checkTheme = async () => {
-      const { theme } = await chrome.storage.local.get("theme");
-      theme && setThemeState(theme);
+    const getFirstTimeNoticeAck = async () => {
+      const ack = await chrome.runtime.sendMessage({
+        type: "getFirstTimeNoticeAck",
+      });
+      setFirstTimeNoticeAckState(ack);
+    };
+
+    const getHotkeys = () => {
+      chrome.runtime.sendMessage({ type: "getHotkeys" }, (commands) => {
+        for (const { name, shortcut } of commands) {
+          console.log({ name, shortcut });
+          if (name === "_execute_action") setHotkey(shortcut);
+        }
+      });
+    };
+
+    const checkHotkeyConflict = () => {
+      chrome.runtime.sendMessage(
+        { type: "checkHotkeyConflict" },
+        (hasConflict) => {
+          setHotkeyConflict(hasConflict);
+        },
+      );
     };
 
     checkInitialVisibility();
-    checkAlerts();
-    checkTheme();
+    getTheme();
+    getFirstTimeNoticeAck();
+    getHotkeys();
+    checkHotkeyConflict();
   }, []);
 
   /*
