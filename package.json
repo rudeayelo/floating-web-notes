@@ -6,15 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "build:dev": "NODE_ENV=development pnpm run build",
+    "build:dev": "NODE_ENV=development pnpm build",
     "lint": "biome check ./src --no-errors-on-unmatched",
     "lint:staged": "biome check ./src --staged --no-errors-on-unmatched --write",
     "screenshot": "concurrently --raw \"npm:screenshot:*\"",
     "screenshot:dev": "vite --mode screenshot",
     "screenshot:serve": "bunx http-server screenshots-set --port 6006 -o",
-    "test": "playwright test",
-    "test:ui": "playwright test --ui",
-    "test:serve": "bunx http-server screenshots-set --port 6006 --silent",
+    "test": "pnpm build:dev && playwright test",
     "release": "bunx commit-and-tag-version && pnpm build && mkdir releases/floating-web-notes-$(node -p \"require('./package.json').version\") && cd dist && zip -r \"../releases/floating-web-notes-$(node -p \"require('./manifest.json').version_name\")/floating-web-notes-$(node -p \"require('./manifest.json').version_name\").zip\" *"
   },
   "dependencies": {
