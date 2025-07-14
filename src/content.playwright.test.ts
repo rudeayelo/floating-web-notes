@@ -237,15 +237,11 @@ test.describe("when the keyboard shortcut is used", () => {
 
     await expect(page.locator("floating-web-notes #root")).toHaveCount(1);
 
-    await page.keyboard.down("Alt");
-    await page.keyboard.press("n");
-    await page.keyboard.up("Alt");
+    await page.keyboard.press("Control+n");
 
     await expect(page.locator("floating-web-notes #root")).toBeFalsy();
 
-    await page.keyboard.down("Alt");
-    await page.keyboard.press("n");
-    await page.keyboard.up("Alt");
+    await page.keyboard.press("Control+n");
 
     await expect(page.locator("floating-web-notes #root")).toHaveCount(1);
   });

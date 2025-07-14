@@ -37,8 +37,9 @@ export const Help = () => {
             </p>
             <h2>How to use</h2>
             <p>
-              Open the notes panel using the <Hotkey>{hotkey}</Hotkey> keyboard
-              shortcut. You can change it in your{" "}
+              Open the notes panel using the{" "}
+              {hotkey && <Hotkey>{hotkey}</Hotkey>} keyboard shortcut. You can{" "}
+              {hotkey ? "change" : "set"} it in your{" "}
               <button
                 type="button"
                 className="ButtonLink"

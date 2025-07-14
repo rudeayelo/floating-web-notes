@@ -9,7 +9,7 @@ const views = ["notes", "help"] as const;
 const defaultDefaultOpen: OpenOptions = "with-notes";
 const defaultTheme: ThemeOptions = "light";
 const defaultView = "notes";
-const defaultHotkey = "alt + n";
+const defaultHotkey = "Ctrl+N";
 const defaultActive = false;
 const defaultScreenshotMode = import.meta.env.MODE === "screenshot";
 const defaultFirstTimeNoticeAck = true;

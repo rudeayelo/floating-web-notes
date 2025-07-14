@@ -42,7 +42,8 @@ export default defineManifest(async (env) => ({
   commands: {
     _execute_action: {
       suggested_key: {
-        default: "Alt + N",
+        default: "Ctrl+N",
+        mac: "MacCtrl+N",
       },
       description: "Toggle the Floating Web Notes window",
     },

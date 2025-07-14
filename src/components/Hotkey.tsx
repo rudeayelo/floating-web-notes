@@ -5,7 +5,7 @@ interface HotkeyProps {
 }
 
 export const Hotkey = ({ children }: HotkeyProps) => {
-  const keys = children.split("+");
+  const keys = children.split("");
 
   return keys.map((key, index) => (
     <Fragment key={key}>
