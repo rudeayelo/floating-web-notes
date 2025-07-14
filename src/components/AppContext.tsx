@@ -129,6 +129,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       });
       const open = storageOpen || defaultOpen;
 
+      // Keep the memory state in sync with the storage state
+      setDefaultOpenState(open);
+
+      // If the user clicks on the extension icon or presses the keyboard
+      // shortcut, the active state changes accordingly
+      chrome.runtime.onMessage.addListener((msg) => {
+        if (msg.type === "toggleActive") setActiveState((active) => !active);
+      });
+
+      // Set the initial active state based on the conditions
       if (!firstTimeNoticeAck) {
         setActive(true);
       } else if (
@@ -140,17 +150,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       } else {
         setActive(true);
       }
-
-      // Keep the memory state in sync with the storage state
-      chrome.runtime.sendMessage({ type: "getOpenDefault" }, (open) => {
-        if (open) setDefaultOpenState(open);
-      });
-
-      // If the user clicks on the extension icon or presses the keyboard
-      // shortcut, the active state changes accordingly
-      chrome.runtime.onMessage.addListener((msg) => {
-        if (msg.type === "toggleActive") setActiveState((active) => !active);
-      });
     };
 
     const getTheme = async () => {
