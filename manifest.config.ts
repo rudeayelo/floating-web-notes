@@ -1,5 +1,6 @@
 import { defineManifest } from "@crxjs/vite-plugin";
 import packageJson from "./package.json";
+
 const { version } = packageJson;
 
 const [major, minor, patch, label = "0"] = version
@@ -11,7 +12,7 @@ export default defineManifest(async (env) => ({
   name:
     env.mode === "staging" ? "[Dev] Floating Web Notes" : "Floating Web Notes",
   description: "Attach text notes to web pages",
-  author: "info@rudeworks.com",
+  author: { email: "info@rudeworks.com" },
   version: `${major}.${minor}.${patch}.${label}`,
   version_name: version,
   icons: {
