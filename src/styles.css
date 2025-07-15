@@ -186,16 +186,14 @@ h6 {
   box-shadow: var(--shadow-depth-3);
   backdrop-filter: blur(20px);
   transition:
-    opacity 0.1s var(--animation-timing-function),
+    opacity 0.3s var(--animation-timing-function),
     transform 0.15s var(--animation-timing-function);
+  opacity: 1;
+  transform: translateX(0);
 
-  &[data-transition-state="true"] {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  &[data-transition-state="false"] {
+  @starting-style {
     opacity: 0;
-    transform: translateX(6px);
+    transform: translateX(36px);
   }
 }
 
