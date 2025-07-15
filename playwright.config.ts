@@ -9,7 +9,7 @@ const EXTENSION_PATH = path.join(__dirname, "dist");
 
 export default defineConfig({
   testDir: "src",
-  testMatch: /.*\.playwright\.test\.ts$/,
+  testMatch: /.*\.test\.ts$/,
   webServer: {
     command: "bunx http-server screenshots-set --port 6006 --silent",
     url: "http://localhost:6006",
