@@ -1,3 +1,4 @@
+import { Api } from "../api";
 import { useActiveView, useHotkey } from "../utils/hooks";
 import { Alerts } from "./Alerts";
 import { Hotkey } from "./Hotkey";
@@ -9,10 +10,7 @@ export const Help = () => {
   const { hotkey } = useHotkey();
   const { setActiveView } = useActiveView();
 
-  const openExtensionPage = () =>
-    chrome.runtime.sendMessage({
-      type: "openExtensionPage",
-    });
+  const openExtensionPage = () => Api.do.openExtensionPage();
 
   return (
     <>

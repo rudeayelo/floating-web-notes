@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Api } from "../api";
 import { useFirstTimeNoticeAck, useHotkey } from "../utils/hooks";
 import { Hotkey } from "./Hotkey";
 import { icons } from "./icons";
@@ -8,10 +9,7 @@ export const Alerts = () => {
   const { hotkey, hotkeyConflict } = useHotkey();
   const [reloading, setReloading] = useState(false);
 
-  const openExtensionPage = () =>
-    chrome.runtime.sendMessage({
-      type: "openExtensionPage",
-    });
+  const openExtensionPage = () => Api.do.openExtensionPage();
 
   const closeHotkeyConflictAlert = async () => {
     setReloading(true);
@@ -20,7 +18,7 @@ export const Alerts = () => {
       window.location.reload();
     }, 3000);
 
-    chrome.runtime.sendMessage({ type: "reloadExtension" });
+    Api.do.reloadExtension();
   };
 
   return (

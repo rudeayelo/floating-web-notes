@@ -1,6 +1,7 @@
 import * as Tooltip from "@radix-ui/react-tooltip";
 import type { ReactNode } from "react";
 import { createContext, useEffect, useState } from "react";
+import { Api } from "../api";
 import type { Note, OpenOptions, ThemeOptions } from "../types";
 import { getCurrentWebNotes } from "../utils/getCurrentWebNotes";
 import { useEnv } from "../utils/hooks";
@@ -80,10 +81,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [hotkeyConflict, setHotkeyConflict] = useState(defaultHotkeyConflict);
 
   const setActive = (active: boolean) => {
-    chrome.runtime.sendMessage({
-      type: "setVisibility",
-      value: active ? "visible" : "hidden",
-    });
+    Api.set.visibility(active ? "visible" : "hidden");
     setActiveState(active);
   };
 
@@ -93,21 +91,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const setDefaultOpen = (open: string) => {
     if (open === "never" || open === "always" || open === "with-notes") {
-      chrome.runtime.sendMessage({ type: "setOpenDefault", value: open });
-      setDefaultOpenState(open);
+      Api.set.openDefault(open as OpenOptions);
+      setDefaultOpenState(open as OpenOptions);
     }
   };
 
   const setTheme = (theme: string) => {
     if (theme === "light" || theme === "dark" || theme === "system") {
-      chrome.runtime.sendMessage({ type: "setTheme", theme });
-      setThemeState(theme);
+      Api.set.theme(theme as ThemeOptions);
+      setThemeState(theme as ThemeOptions);
     }
   };
 
   const closeFirstTimeNotice = async () => {
     setFirstTimeNoticeAckState(true);
-    await chrome.storage.local.set({ firstTimeNoticeAck: true });
+    Api.set.firstTimeNoticeAck(true);
   };
 
   /* -------------------------------------------------------------------------- */
@@ -118,16 +116,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     // Decide if the app should be active or not on first load
     const checkInitialVisibility = async () => {
       const currentNotes = await getCurrentWebNotes();
-      const firstTimeNoticeAck = await chrome.runtime.sendMessage({
-        type: "getFirstTimeNoticeAck",
-      });
-      const storageOpen = await chrome.runtime.sendMessage({
-        type: "getOpenDefault",
-      });
-      const initialVisibility = await chrome.runtime.sendMessage({
-        type: "getVisibility",
-      });
-      const open = storageOpen || defaultOpen;
+      const firstTimeNoticeAck = await Api.get.firstTimeNoticeAck();
+      const storageOpen = await Api.get.openDefault();
+      const initialVisibility = await Api.get.visibility();
+      const open = storageOpen || defaultDefaultOpen;
 
       // Keep the memory state in sync with the storage state
       setDefaultOpenState(open);
@@ -153,33 +145,26 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const getTheme = async () => {
-      const theme = await chrome.runtime.sendMessage({ type: "getTheme" });
+      const theme = await Api.get.theme();
       if (theme) setThemeState(theme);
     };
 
     const getFirstTimeNoticeAck = async () => {
-      const ack = await chrome.runtime.sendMessage({
-        type: "getFirstTimeNoticeAck",
-      });
+      const ack = await Api.get.firstTimeNoticeAck();
       setFirstTimeNoticeAckState(ack);
     };
 
-    const getHotkeys = () => {
-      chrome.runtime.sendMessage({ type: "getHotkeys" }, (commands) => {
-        for (const { name, shortcut } of commands) {
-          console.log({ name, shortcut });
-          if (name === "_execute_action") setHotkey(shortcut);
-        }
-      });
+    const getHotkeys = async () => {
+      const commands = await Api.get.hotkeys();
+      for (const { name, shortcut } of commands) {
+        console.log({ name, shortcut });
+        if (name === "_execute_action") setHotkey(shortcut);
+      }
     };
 
-    const checkHotkeyConflict = () => {
-      chrome.runtime.sendMessage(
-        { type: "checkHotkeyConflict" },
-        (hasConflict) => {
-          setHotkeyConflict(hasConflict);
-        },
-      );
+    const checkHotkeyConflict = async () => {
+      const hasConflict = await Api.get.hotkeyConflict();
+      setHotkeyConflict(hasConflict);
     };
 
     checkInitialVisibility();

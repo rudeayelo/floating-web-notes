@@ -1,3 +1,8 @@
+export type Command = {
+  name: string;
+  shortcut: string;
+};
+
 export type Note = {
   id: string;
   text: string;
