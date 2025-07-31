@@ -1,5 +1,5 @@
 import { Api } from "../api";
-import { useActiveView, useHotkey } from "../utils/hooks";
+import { useSettingsStore, useUIStore } from "../store";
 import { Alerts } from "./Alerts";
 import { Hotkey } from "./Hotkey";
 import { IconButton } from "./IconButton";
@@ -7,8 +7,8 @@ import { ScrollArea } from "./ScrollArea";
 import { SettingsDropdown } from "./SettingsDropdown";
 
 export const Help = () => {
-  const { hotkey } = useHotkey();
-  const { setActiveView } = useActiveView();
+  const hotkey = useSettingsStore((state) => state.hotkey);
+  const setActiveView = useUIStore((state) => state.setActiveView);
 
   const openExtensionPage = () => Api.do.openExtensionPage();
 

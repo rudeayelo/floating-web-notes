@@ -1,10 +1,10 @@
 import { nanoid } from "nanoid";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useNotesById } from "../utils/hooks";
+import { useNotesStore } from "../store";
 import { icons } from "./icons";
 
 export const CreateNoteState = () => {
-  const { setNotesById } = useNotesById();
+  const setNotesById = useNotesStore((state) => state.setNotesById);
 
   useHotkeys("shift + enter", async () => await createNote({ exact: true }));
   useHotkeys("enter", async () => await createNote());

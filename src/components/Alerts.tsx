@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { Api } from "../api";
-import { useFirstTimeNoticeAck, useHotkey } from "../utils/hooks";
+import { useSettingsStore, useUIStore } from "../store";
 import { Hotkey } from "./Hotkey";
 import { icons } from "./icons";
 
 export const Alerts = () => {
-  const { firstTimeNoticeAck, closeFirstTimeNotice } = useFirstTimeNoticeAck();
-  const { hotkey, hotkeyConflict } = useHotkey();
+  const firstTimeNoticeAck = useUIStore((state) => state.firstTimeNoticeAck);
+  const closeFirstTimeNotice = useUIStore(
+    (state) => state.closeFirstTimeNotice,
+  );
+  const hotkey = useSettingsStore((state) => state.hotkey);
+  const hotkeyConflict = useSettingsStore((state) => state.hotkeyConflict);
   const [reloading, setReloading] = useState(false);
 
   const openExtensionPage = () => Api.do.openExtensionPage();

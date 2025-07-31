@@ -1,23 +1,19 @@
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { useNotesStore, useSettingsStore, useUIStore } from "../store";
 import type { OpenOptions, ThemeOptions } from "../types";
-import {
-  useActiveView,
-  useDefaultOpen,
-  useEnv,
-  useNotes,
-  useScreenshotMode,
-  useTheme,
-} from "../utils/hooks";
+import { useEnv } from "../utils/hooks";
 import { IconButton } from "./IconButton";
 import { icons } from "./icons";
 
 export const SettingsDropdown = () => {
-  const { defaultOpen, setDefaultOpen } = useDefaultOpen();
-  const { setActiveView } = useActiveView();
-  const { theme, setTheme } = useTheme();
-  const { setNotes } = useNotes();
+  const defaultOpen = useSettingsStore((state) => state.defaultOpen);
+  const setDefaultOpen = useSettingsStore((state) => state.setDefaultOpen);
+  const theme = useSettingsStore((state) => state.theme);
+  const setTheme = useSettingsStore((state) => state.setTheme);
+  const setActiveView = useUIStore((state) => state.setActiveView);
+  const setScreenshotMode = useUIStore((state) => state.setScreenshotMode);
+  const setNotes = useNotesStore((state) => state.setNotes);
   const { isDevEnv } = useEnv();
-  const { setScreenshotMode } = useScreenshotMode();
 
   const handleNuke = async () => {
     await chrome.storage.local.clear();

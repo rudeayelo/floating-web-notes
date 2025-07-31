@@ -1,4 +1,4 @@
-import { useNotes } from "../utils/hooks";
+import { useNotesStore } from "../store";
 import { Alerts } from "./Alerts";
 import { CreateNoteState } from "./CreateNoteState";
 import { Header } from "./Header";
@@ -6,7 +6,7 @@ import { NoteEditor } from "./NoteEditor";
 import { ScrollArea } from "./ScrollArea";
 
 export const Notes = () => {
-  const { notes } = useNotes();
+  const notes = useNotesStore((state) => state.notes);
 
   return (
     <>

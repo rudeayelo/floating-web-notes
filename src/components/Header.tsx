@@ -1,9 +1,9 @@
-import { useActive } from "../utils/hooks";
+import { useSettingsStore } from "../store";
 import { IconButton } from "./IconButton";
 import { SettingsDropdown } from "./SettingsDropdown";
 
 export const Header = () => {
-  const { setActive } = useActive();
+  const setActive = useSettingsStore((state) => state.setActive);
 
   return (
     <div className="Header">

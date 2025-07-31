@@ -192,6 +192,7 @@ h6 {
   transform: translateX(0);
 
   @starting-style {
+    /* biome-ignore lint/suspicious/noDuplicateProperties: Not a duplicate */
     opacity: 0;
     transform: translateX(36px);
   }

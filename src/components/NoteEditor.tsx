@@ -5,9 +5,9 @@ import type { ComponentProps } from "react";
 import { useEffect, useRef, useState } from "react";
 import ContentEditable from "react-contenteditable";
 import { useDebouncedCallback } from "use-debounce";
+import { useNotesStore } from "../store";
 import type { Note } from "../types";
 import { globToRegExp } from "../utils/globToRegExp";
-import { useNotesById } from "../utils/hooks";
 import { IconButton } from "./IconButton";
 import { icons } from "./icons";
 
@@ -21,7 +21,7 @@ export const NoteEditor = ({
   pattern,
   ...props
 }: NoteProps) => {
-  const { setNotesById } = useNotesById();
+  const setNotesById = useNotesStore((state) => state.setNotesById);
   const editorRef = useRef(null);
   const [noteText, setNoteText] = useState(text);
   const [URLPattern, setURLPattern] = useState(pattern);

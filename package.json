@@ -26,7 +26,8 @@
     "react-contenteditable": "3.3.7",
     "react-dom": "19.1.0",
     "react-hotkeys-hook": "5.1.0",
-    "use-debounce": "10.0.5"
+    "use-debounce": "10.0.5",
+    "zustand": "5.0.6"
   },
   "devDependencies": {
     "@biomejs/biome": "2.1.1",
