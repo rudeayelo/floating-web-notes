@@ -5,7 +5,7 @@ import { useEnv } from "../utils/hooks";
 
 export function ShadowDom({
   parentElement,
-  position = "afterend",
+  position = "beforeend",
   children,
 }: {
   parentElement: Element;
