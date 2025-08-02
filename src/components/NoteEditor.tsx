@@ -1,10 +1,10 @@
+import { RichTextKit, TypistEditor } from "@doist/typist";
 import * as Popover from "@radix-ui/react-popover";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import DOMPurify from "dompurify";
 import type { ComponentProps } from "react";
 import { useEffect, useRef, useState } from "react";
-import ContentEditable from "react-contenteditable";
 import { useDebouncedCallback } from "use-debounce";
+import { Api } from "../api";
 import { useNotesStore } from "../store";
 import type { Note } from "../types";
 import { globToRegExp } from "../utils/globToRegExp";
@@ -13,7 +13,7 @@ import { icons } from "./icons";
 
 export type NoteProps = ComponentProps<"div"> & Note;
 
-export const defaultText = "<p>&#8203;</p>";
+export const defaultText = "&#8203;";
 
 export const NoteEditor = ({
   id,
@@ -23,7 +23,6 @@ export const NoteEditor = ({
 }: NoteProps) => {
   const setNotesById = useNotesStore((state) => state.setNotesById);
   const editorRef = useRef(null);
-  const [noteText, setNoteText] = useState(text);
   const [URLPattern, setURLPattern] = useState(pattern);
   const [URLPatternWarning, setURLPatternWarning] = useState(false);
 
@@ -36,36 +35,20 @@ export const NoteEditor = ({
   }, []);
 
   const handleRemoveNote = async () => {
-    await chrome.storage.local.remove(id);
+    Api.remove.note(id);
 
-    const { notesById } = await chrome.storage.local.get("notesById");
+    const notesById = await Api.get.notesById();
     const updatedNotesById = notesById.filter(
       (noteId: string) => noteId !== id,
     );
-    await chrome.storage.local.set({ notesById: updatedNotesById });
+    await Api.set.notesById(updatedNotesById);
 
     setNotesById(notesById);
   };
 
   const handleInput = useDebouncedCallback(
     async (text) => {
-      const sanitizedText = DOMPurify.sanitize(text, {
-        ALLOWED_TAGS: ["b", "i", "em", "strong", "p", "u", "a"],
-        ALLOWED_ATTR: ["href"],
-      });
-
-      await chrome.storage.local.set({
-        [id]: {
-          id,
-          pattern: URLPattern,
-          text: sanitizedText,
-        },
-      });
-
-      const textContent = sanitizedText.replace(/<[^>]*>/g, "").trim();
-      const textIsEmpty = textContent.length === 0 || textContent === "​";
-
-      setNoteText(textIsEmpty ? defaultText : text);
+      Api.set.note({ id, pattern: URLPattern, text });
     },
     600,
     { maxWait: 1000 },
@@ -81,18 +64,13 @@ export const NoteEditor = ({
   const handleURLPatternSave = async () => {
     const note = await chrome.storage.local.get(`${id}`);
 
-    await chrome.storage.local.set({
-      [id]: {
-        id,
-        pattern: URLPattern,
-        text: DOMPurify.sanitize(note[id].text, {
-          ALLOWED_TAGS: ["b", "i", "em", "strong", "p", "u", "a"],
-          ALLOWED_ATTR: ["href"],
-        }),
-      },
+    Api.set.note({
+      id,
+      pattern: URLPattern,
+      text: note[id].text,
     });
 
-    const { notesById } = await chrome.storage.local.get("notesById");
+    const notesById = await Api.get.notesById();
     setNotesById(notesById);
   };
 
@@ -103,13 +81,13 @@ export const NoteEditor = ({
 
   return (
     <div className="Note" data-note-id={id} {...props}>
-      <ContentEditable
+      <TypistEditor
         className="NoteEditor"
-        tagName="pre"
-        html={noteText}
-        onChange={(evt) => handleInput(evt.target.value)}
-        tabIndex={-1}
-        innerRef={editorRef as unknown as React.RefObject<HTMLDivElement>}
+        content={text}
+        extensions={[RichTextKit]}
+        onUpdate={(content) => {
+          handleInput(content.getMarkdown());
+        }}
       />
 
       <div className="NoteFooter">

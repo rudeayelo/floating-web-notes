@@ -45,6 +45,7 @@ h5,
 h6 {
   overflow-wrap: break-word;
   text-wrap: balance;
+  text-box: trim-both cap alphabetic;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -238,15 +239,6 @@ em {
   font-variation-settings: "slnt" -10;
 }
 
-code {
-  background: var(--gray-1);
-  border: 1px solid var(--gray-4);
-  border-radius: 4px;
-  padding: 2px 4px;
-  font-size: 13px;
-  color: var(--gray-11);
-}
-
 /* --------------------------------- Header --------------------------------- */
 
 .Header {
@@ -416,21 +408,66 @@ code {
   gap: 8px;
   text-wrap: wrap;
 
-  &:focus-within {
-    outline: none;
-  }
+  [data-typist-editor] {
+    &:focus-within {
+      outline: none;
+    }
 
-  & i {
-    font-variation-settings: "slnt" -10;
-  }
+    & :is(h1, h2, h3, h4, h5, h6):not(:first-child) {
+      padding-block-start: 0.5em;
+    }
 
-  & b {
-    font-weight: 600;
-  }
+    &
+      :is(p, h1, h2, h3, h4, h5, h6, ul, ol, pre, blockquote):not(
+        li > p,
+        :last-child
+      ) {
+      margin-block-end: 16px;
+    }
 
-  & a {
-    color: var(--color-text-link);
-    cursor: pointer;
+    & :is(ul, ol) {
+      padding-inline-start: 16px;
+    }
+
+    & blockquote {
+      border-inline-start: 3px solid var(--gray-8);
+      padding-inline-start: 0.8em;
+      padding-block-start: 0.5em;
+      padding-block-end: 0.5em;
+    }
+
+    & li {
+      margin-block-end: 8px;
+    }
+
+    & b {
+      font-weight: 600;
+    }
+
+    & a {
+      color: var(--color-text-link);
+      cursor: pointer;
+    }
+
+    & code {
+      font-size: 13px;
+      color: var(--gray-11);
+
+      &:not(pre code) {
+        background: var(--gray-1);
+        border: 1px solid var(--gray-4);
+        border-radius: 4px;
+        padding: 2px 4px;
+      }
+    }
+
+    & pre {
+      background: var(--gray-1);
+      border: 1px solid var(--gray-4);
+      border-radius: 4px;
+      padding: 4px 8px;
+      overflow-x: auto;
+    }
   }
 }
 

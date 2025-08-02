@@ -148,4 +148,43 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.storage.local.set({ firstTimeNoticeAck: message.value });
     return true;
   }
+
+  if (message.type === "getNotesById") {
+    chrome.storage.local.get("notesById").then((result) => {
+      sendResponse(result.notesById || []);
+    });
+    return true;
+  }
+
+  if (message.type === "getAllNotes") {
+    chrome.storage.local.get("notesById").then((result) => {
+      const notesById = result.notesById || [];
+
+      chrome.storage.local.get(notesById).then((notes) => {
+        sendResponse(Object.values(notes));
+      });
+    });
+    return true;
+  }
+
+  if (message.type === "setNotesById") {
+    chrome.storage.local.set({ notesById: message.notesById });
+    return true;
+  }
+
+  if (message.type === "setNote") {
+    chrome.storage.local.set({
+      [message.id]: {
+        id: message.id,
+        pattern: message.pattern,
+        text: message.text,
+      },
+    });
+    return true;
+  }
+
+  if (message.type === "removeNote") {
+    chrome.storage.local.remove(message.id);
+    return true;
+  }
 });
