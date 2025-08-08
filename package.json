@@ -1,7 +1,7 @@
 {
   "name": "floating-web-notes",
   "private": true,
-  "version": "0.0.10",
+  "version": "0.0.11",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,9 +13,9 @@
     "screenshot:dev": "vite --mode screenshot",
     "screenshot:serve": "bunx http-server screenshots-set --port 6006 -o",
     "test": "pnpm build:dev && playwright test",
-    "version": "bunx commit-and-tag-version && pnpm build",
-    "version:minor": "bunx commit-and-tag-version --release-as minor && pnpm build",
-    "version:major": "bunx commit-and-tag-version --release-as major && pnpm build",
+    "version": "bunx commit-and-tag-version --tag-force && pnpm build",
+    "version:minor": "bunx commit-and-tag-version --tag-force --release-as minor && pnpm build",
+    "version:major": "bunx commit-and-tag-version --tag-force --release-as major && pnpm build",
     "release": "mkdir releases/floating-web-notes-$(node -p \"require('./package.json').version\") && cd dist && zip -r \"../releases/floating-web-notes-$(node -p \"require('./manifest.json').version_name\")/floating-web-notes-$(node -p \"require('./manifest.json').version_name\").zip\" * && cd .. && git add . && git commit --amend --no-edit"
   },
   "dependencies": {
