@@ -28,6 +28,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hotkeys-hook": "5.1.0",
+    "react-rnd": "10.5.2",
     "turndown": "7.2.0",
     "use-debounce": "10.0.5",
     "zustand": "5.0.6"

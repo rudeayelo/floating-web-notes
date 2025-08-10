@@ -161,6 +161,10 @@ h6 {
 
   /* Layout */
   --window-width: 340px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 99999;
 
   /* Typography */
   font-family: "Inter-FWN", sans-serif;
@@ -175,34 +179,34 @@ h6 {
 
 .Container {
   max-width: var(--window-width);
-  z-index: 99999;
-  position: fixed;
   display: flex;
   flex-direction: column;
-  top: 24px;
-  right: 24px;
   border-radius: 8px;
   background: var(--color-container-bg);
   color: var(--color-text-primary);
   box-shadow: var(--shadow-depth-3);
   backdrop-filter: blur(20px);
-  transition:
-    opacity 0.3s var(--animation-timing-function),
-    transform 0.15s var(--animation-timing-function);
+  transition: opacity 0.3s var(--animation-timing-function);
   opacity: 1;
-  transform: translateX(0);
 
   @starting-style {
     /* biome-ignore lint/suspicious/noDuplicateProperties: Not a duplicate */
     opacity: 0;
-    transform: translateX(36px);
+  }
+
+  &.react-draggable-dragging {
+    user-select: none !important;
+  }
+
+  &[data-custom-position="false"] {
+    position: fixed !important;
   }
 }
 
 .Page {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 24px;
   padding: 0 24px 24px;
   max-width: var(--window-width);
 }
@@ -248,6 +252,11 @@ em {
   align-items: center;
   padding: 4px 8px;
   z-index: 1;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
 
   &::after {
     content: "";
@@ -258,14 +267,18 @@ em {
     block-size: 1px;
     background: var(--gray-a3);
     z-index: -1;
+    opacity: 0;
+    transition: opacity 0.2s;
+    will-change: opacity;
   }
 }
 
-.Header::after {
-  opacity: 0;
-  transition: opacity 0.2s;
-  will-change: opacity;
+.HeaderEnd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
+
 :has(.Container:hover) .Header::after {
   opacity: 1;
 }
@@ -402,6 +415,12 @@ em {
 /*                                    Notes                                   */
 /* -------------------------------------------------------------------------- */
 
+.CreateNoteState {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .NoteEditor {
   display: flex;
   flex-direction: column;
@@ -467,6 +486,13 @@ em {
       border-radius: 4px;
       padding: 4px 8px;
       overflow-x: auto;
+    }
+
+    & hr {
+      background: var(--gray-8);
+      border: 0;
+      height: 1px;
+      margin-block-end: 1em;
     }
   }
 }
@@ -909,7 +935,7 @@ em {
 /* -------------------------------------------------------------------------- */
 
 .ScrollAreaRoot {
-  width: 340px;
+  width: var(--window-width);
   height: 100%;
   overflow: hidden;
   --scrollbar-size: 16px;
@@ -917,7 +943,7 @@ em {
 
 .ScrollAreaViewport {
   width: 100%;
-  max-height: calc(100vh - 80px);
+  max-height: 500px;
 }
 
 .ScrollAreaScrollbar {

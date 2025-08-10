@@ -150,17 +150,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "getNotesById") {
-    chrome.storage.local.get("notesById").then((result) => {
-      sendResponse(result.notesById || []);
+    chrome.storage.local.get("notesById").then(({ notesById }) => {
+      sendResponse(notesById || []);
     });
     return true;
   }
 
   if (message.type === "getAllNotes") {
-    chrome.storage.local.get("notesById").then((result) => {
-      const notesById = result.notesById || [];
-
-      chrome.storage.local.get(notesById).then((notes) => {
+    chrome.storage.local.get("notesById").then(({ notesById }) => {
+      chrome.storage.local.get(notesById || []).then((notes) => {
         sendResponse(Object.values(notes));
       });
     });
@@ -185,6 +183,40 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === "removeNote") {
     chrome.storage.local.remove(message.id);
+    return true;
+  }
+
+  if (message.type === "getPosition") {
+    chrome.storage.local.get("urlState").then(({ urlState }) => {
+      const position = urlState?.[message.url]?.position;
+      sendResponse(position);
+    });
+
+    return true;
+  }
+
+  if (message.type === "setPosition") {
+    chrome.storage.local.get("urlState").then(({ urlState }) => {
+      chrome.storage.local.set({
+        urlState: {
+          ...urlState,
+          [message.url]: { position: message.position },
+        },
+      });
+    });
+
+    return true;
+  }
+
+  if (message.type === "removePosition") {
+    chrome.storage.local.get("urlState").then(({ urlState }) => {
+      const newUrlState = { ...urlState };
+      delete newUrlState[message.url];
+      chrome.storage.local.set({
+        urlState: newUrlState,
+      });
+    });
+
     return true;
   }
 });

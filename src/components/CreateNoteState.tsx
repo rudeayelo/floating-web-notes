@@ -31,7 +31,7 @@ export const CreateNoteState = () => {
   };
 
   return (
-    <>
+    <div className="CreateNoteState">
       <div className="EmptyNotesLabel">Add a new note…</div>
       <button
         type="button"
@@ -55,6 +55,6 @@ export const CreateNoteState = () => {
           <kbd>Shift</kbd> + <kbd>Enter</kbd>
         </span>
       </button>
-    </>
+    </div>
   );
 };

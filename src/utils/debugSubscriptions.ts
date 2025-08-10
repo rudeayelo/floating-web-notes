@@ -79,19 +79,25 @@ export const setupDebugSubscriptions = () => {
   // Subscribe to UI store changes
   const unsubUI = useUIStore.subscribe((state) => {
     const changed = {
+      active: state.active !== prevUI.active,
       activeView: state.activeView !== prevUI.activeView,
       screenshotMode: state.screenshotMode !== prevUI.screenshotMode,
       firstTimeNoticeAck:
         state.firstTimeNoticeAck !== prevUI.firstTimeNoticeAck,
+      position: !deepEqual(state.position, prevUI.position),
+      hasCustomPosition: state.hasCustomPosition !== prevUI.hasCustomPosition,
     };
 
     if (Object.values(changed).some(Boolean)) {
       console.log("🎨 UI Store changed:", {
         changes: changed,
         current: {
+          active: state.active,
           activeView: state.activeView,
           screenshotMode: state.screenshotMode,
           firstTimeNoticeAck: state.firstTimeNoticeAck,
+          position: state.position,
+          hasCustomPosition: state.hasCustomPosition,
         },
       });
       prevUI = state;

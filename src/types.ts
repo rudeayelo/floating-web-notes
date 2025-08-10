@@ -11,3 +11,12 @@ export type Note = {
 
 export type OpenOptions = "always" | "never" | "with-notes";
 export type ThemeOptions = "light" | "dark" | "system";
+
+export type Position = {
+  x: number;
+  y: number;
+};
+
+export type UrlState = {
+  [key: string]: Position | undefined;
+};

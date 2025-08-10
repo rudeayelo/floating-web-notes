@@ -1,4 +1,10 @@
-import type { Command, Note, OpenOptions, ThemeOptions } from "./types";
+import type {
+  Command,
+  Note,
+  OpenOptions,
+  Position,
+  ThemeOptions,
+} from "./types";
 
 const sendMessage = <T>(message: {
   type: string;
@@ -33,6 +39,9 @@ export const Api = {
     allNotes: (): Promise<Note[]> => {
       return sendMessage({ type: "getAllNotes" });
     },
+    position: (url: string): Promise<Position> => {
+      return sendMessage({ type: "getPosition", url });
+    },
   },
   set: {
     visibility: (value: "visible" | "hidden") => {
@@ -53,10 +62,16 @@ export const Api = {
     note: ({ id, pattern, text }: Note) => {
       sendMessage({ type: "setNote", id, pattern, text });
     },
+    position: (url: string, position: Position) => {
+      sendMessage({ type: "setPosition", url, position });
+    },
   },
   remove: {
     note: (id: string) => {
       sendMessage({ type: "removeNote", id });
+    },
+    position: (url: string) => {
+      sendMessage({ type: "removePosition", url });
     },
   },
   do: {
