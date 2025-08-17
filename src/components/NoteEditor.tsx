@@ -88,6 +88,7 @@ export const NoteEditor = ({
         onUpdate={(content) => {
           handleInput(content.getMarkdown());
         }}
+        autoFocus={true}
       />
 
       <div className="NoteFooter">
