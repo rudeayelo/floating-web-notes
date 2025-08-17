@@ -10,6 +10,7 @@ type IconButtonProps = ComponentProps<"button"> & {
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
   ({ icon, className, variant = "default", ...props }, ref) => (
     <button
+      type="button"
       className={`IconButton GhostButton ${className}`}
       data-variant={variant}
       ref={ref}

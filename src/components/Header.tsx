@@ -18,6 +18,8 @@ export const Header = () => {
         />
       </div>
 
+      <div className="HeaderHandle"></div>
+
       <div className="HeaderEnd">
         {hasCustomPosition && (
           <Tooltip.Root>

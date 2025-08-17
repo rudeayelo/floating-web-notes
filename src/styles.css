@@ -49,8 +49,7 @@ h6 {
 }
 
 /* -------------------------------------------------------------------------- */
-
-#root {
+:host {
   /* Color Palette */
   --gray-1: #fcfcfd;
   --gray-2: #f9f9fb;
@@ -161,10 +160,6 @@ h6 {
 
   /* Layout */
   --window-width: 340px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 99999;
 
   /* Typography */
   font-family: "Inter-FWN", sans-serif;
@@ -175,6 +170,13 @@ h6 {
   line-height: 1.5;
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* z-index: 99999; */
 }
 
 .Container {
@@ -252,11 +254,6 @@ em {
   align-items: center;
   padding: 4px 8px;
   z-index: 1;
-  cursor: grab;
-
-  &:active {
-    cursor: grabbing;
-  }
 
   &::after {
     content: "";
@@ -271,6 +268,29 @@ em {
     transition: opacity 0.2s;
     will-change: opacity;
   }
+
+  & .HeaderHandle {
+    position: relative;
+    flex: 1;
+    height: 16px;
+    border-radius: 99em;
+    cursor: grab;
+
+    &:hover {
+      background: var(--gray-5);
+    }
+
+    &:active {
+      cursor: grabbing;
+      background: var(--gray-6);
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: -6px;
+    }
+  }
 }
 
 .HeaderEnd {
@@ -279,7 +299,7 @@ em {
   gap: 8px;
 }
 
-:has(.Container:hover) .Header::after {
+:has(#root:hover) .Header::after {
   opacity: 1;
 }
 
@@ -290,7 +310,8 @@ em {
   transition: opacity 0.2s;
   will-change: opacity;
 }
-:has(.Container:hover) .GhostButton {
+
+:where(#root:hover, #root:has(+ div:hover)) .GhostButton {
   opacity: 1;
 }
 

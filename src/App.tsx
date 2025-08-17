@@ -48,7 +48,7 @@ export const App = () => {
             height: "auto",
           }}
           position={position}
-          dragHandleClassName="Header"
+          dragHandleClassName="HeaderHandle"
           bounds="body"
           enableResizing={false}
           onDragStop={(_e, d) => {
