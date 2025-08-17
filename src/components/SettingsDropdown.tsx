@@ -1,4 +1,4 @@
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { Menu } from "@base-ui-components/react/menu";
 import { useNotesStore, useSettingsStore, useUIStore } from "../store";
 import type { OpenOptions, ThemeOptions } from "../types";
 import { useEnv } from "../utils/hooks";
@@ -22,131 +22,130 @@ export const SettingsDropdown = () => {
   };
 
   return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger asChild>
-        <IconButton icon="menu" id="Settings" />
-      </DropdownMenu.Trigger>
+    <Menu.Root modal={false}>
+      <Menu.Trigger render={<IconButton icon="menu" id="Settings" />} />
 
-      <DropdownMenu.Content className="DropdownMenuContent" align="end">
-        <DropdownMenu.Label className="DropdownMenuLabel">
-          Open by default
-        </DropdownMenu.Label>
+      <Menu.Portal
+        container={document.querySelector("floating-web-notes")?.shadowRoot}
+      >
+        <Menu.Positioner align="end">
+          <Menu.Popup className="DropdownMenuContent">
+            <Menu.Group>
+              <Menu.GroupLabel className="DropdownMenuLabel">
+                Open by default
+              </Menu.GroupLabel>
 
-        <DropdownMenu.RadioGroup
-          value={defaultOpen}
-          onValueChange={(open) => setDefaultOpen(open as OpenOptions)}
-        >
-          <DropdownMenu.RadioItem
-            className="DropdownMenuRadioItem"
-            id="open-default-option-never"
-            value="never"
-            onSelect={(evt: Event) => evt.preventDefault()}
-          >
-            <DropdownMenu.ItemIndicator className="DropdownMenuItemIndicator">
-              {icons.check}
-            </DropdownMenu.ItemIndicator>
-            Never
-          </DropdownMenu.RadioItem>
-          <DropdownMenu.RadioItem
-            className="DropdownMenuRadioItem"
-            id="open-default-option-always"
-            value="always"
-            onSelect={(evt: Event) => evt.preventDefault()}
-          >
-            <DropdownMenu.ItemIndicator className="DropdownMenuItemIndicator">
-              {icons.check}
-            </DropdownMenu.ItemIndicator>
-            On every website
-          </DropdownMenu.RadioItem>
-          <DropdownMenu.RadioItem
-            className="DropdownMenuRadioItem"
-            id="open-default-option-with-notes"
-            value="with-notes"
-            onSelect={(evt: Event) => evt.preventDefault()}
-          >
-            <DropdownMenu.ItemIndicator className="DropdownMenuItemIndicator">
-              {icons.check}
-            </DropdownMenu.ItemIndicator>
-            Only when there's a note
-          </DropdownMenu.RadioItem>
-        </DropdownMenu.RadioGroup>
-
-        <DropdownMenu.Separator className="DropdownMenuSeparator" />
-
-        {isDevEnv ? (
-          <>
-            <DropdownMenu.Label className="DropdownMenuLabel">
-              Theme
-            </DropdownMenu.Label>
-
-            <DropdownMenu.RadioGroup
-              value={theme}
-              onValueChange={(theme) => setTheme(theme as ThemeOptions)}
-            >
-              <DropdownMenu.RadioItem
-                className="DropdownMenuRadioItem"
-                value="light"
-                onSelect={(evt: Event) => evt.preventDefault()}
+              <Menu.RadioGroup
+                value={defaultOpen}
+                onValueChange={(open) => setDefaultOpen(open as OpenOptions)}
               >
-                <DropdownMenu.ItemIndicator className="DropdownMenuItemIndicator">
-                  {icons.check}
-                </DropdownMenu.ItemIndicator>
-                Light
-              </DropdownMenu.RadioItem>
-              <DropdownMenu.RadioItem
-                className="DropdownMenuRadioItem"
-                value="dark"
-                onSelect={(evt: Event) => evt.preventDefault()}
-              >
-                <DropdownMenu.ItemIndicator className="DropdownMenuItemIndicator">
-                  {icons.check}
-                </DropdownMenu.ItemIndicator>
-                Dark
-              </DropdownMenu.RadioItem>
-              <DropdownMenu.RadioItem
-                className="DropdownMenuRadioItem"
-                value="system"
-                onSelect={(evt: Event) => evt.preventDefault()}
-              >
-                <DropdownMenu.ItemIndicator className="DropdownMenuItemIndicator">
-                  {icons.check}
-                </DropdownMenu.ItemIndicator>
-                System
-              </DropdownMenu.RadioItem>
-            </DropdownMenu.RadioGroup>
+                <Menu.RadioItem
+                  className="DropdownMenuRadioItem"
+                  id="open-default-option-never"
+                  value="never"
+                >
+                  <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
+                    {icons.check}
+                  </Menu.RadioItemIndicator>
+                  Never
+                </Menu.RadioItem>
+                <Menu.RadioItem
+                  className="DropdownMenuRadioItem"
+                  id="open-default-option-always"
+                  value="always"
+                >
+                  <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
+                    {icons.check}
+                  </Menu.RadioItemIndicator>
+                  On every website
+                </Menu.RadioItem>
+                <Menu.RadioItem
+                  className="DropdownMenuRadioItem"
+                  id="open-default-option-with-notes"
+                  value="with-notes"
+                >
+                  <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
+                    {icons.check}
+                  </Menu.RadioItemIndicator>
+                  Only when there's a note
+                </Menu.RadioItem>
+              </Menu.RadioGroup>
+            </Menu.Group>
 
-            <DropdownMenu.Separator className="DropdownMenuSeparator" />
-          </>
-        ) : null}
+            <Menu.Separator className="DropdownMenuSeparator" />
 
-        <DropdownMenu.Item
-          className="DropdownMenuItem"
-          onClick={() => setActiveView("help")}
-          id="HelpMenuItem"
-        >
-          Help
-        </DropdownMenu.Item>
+            {isDevEnv ? (
+              <>
+                <Menu.Group>
+                  <Menu.GroupLabel className="DropdownMenuLabel">
+                    Theme
+                  </Menu.GroupLabel>
 
-        {isDevEnv ? (
-          <>
-            <DropdownMenu.Separator className="DropdownMenuSeparator" />
-            <DropdownMenu.Item
+                  <Menu.RadioGroup
+                    value={theme}
+                    onValueChange={(theme) => setTheme(theme as ThemeOptions)}
+                  >
+                    <Menu.RadioItem
+                      className="DropdownMenuRadioItem"
+                      value="light"
+                    >
+                      <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
+                        {icons.check}
+                      </Menu.RadioItemIndicator>
+                      Light
+                    </Menu.RadioItem>
+                    <Menu.RadioItem
+                      className="DropdownMenuRadioItem"
+                      value="dark"
+                    >
+                      <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
+                        {icons.check}
+                      </Menu.RadioItemIndicator>
+                      Dark
+                    </Menu.RadioItem>
+                    <Menu.RadioItem
+                      className="DropdownMenuRadioItem"
+                      value="system"
+                    >
+                      <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
+                        {icons.check}
+                      </Menu.RadioItemIndicator>
+                      System
+                    </Menu.RadioItem>
+                  </Menu.RadioGroup>
+                </Menu.Group>
+
+                <Menu.Separator className="DropdownMenuSeparator" />
+              </>
+            ) : null}
+
+            <Menu.Item
               className="DropdownMenuItem"
-              onSelect={() => setScreenshotMode(true)}
+              onClick={() => setActiveView("help")}
+              id="HelpMenuItem"
             >
-              Screenshot Mode
-            </DropdownMenu.Item>
-            <DropdownMenu.Item
-              className="DropdownMenuItem"
-              onSelect={handleNuke}
-            >
-              Nuke (Remove all notes)
-            </DropdownMenu.Item>
-          </>
-        ) : null}
+              Help
+            </Menu.Item>
 
-        <DropdownMenu.Arrow className="DropdownMenuArrow" />
-      </DropdownMenu.Content>
-    </DropdownMenu.Root>
+            {isDevEnv ? (
+              <>
+                <Menu.Separator className="DropdownMenuSeparator" />
+                <Menu.Item
+                  className="DropdownMenuItem"
+                  onClick={() => setScreenshotMode(true)}
+                >
+                  Screenshot Mode
+                </Menu.Item>
+                <Menu.Item className="DropdownMenuItem" onClick={handleNuke}>
+                  Nuke (Remove all notes)
+                </Menu.Item>
+              </>
+            ) : null}
+
+            <Menu.Arrow className="DropdownMenuArrow" />
+          </Menu.Popup>
+        </Menu.Positioner>
+      </Menu.Portal>
+    </Menu.Root>
   );
 };
