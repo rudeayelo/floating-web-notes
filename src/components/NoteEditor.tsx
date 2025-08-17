@@ -2,7 +2,7 @@ import { RichTextKit, TypistEditor } from "@doist/typist";
 import * as Popover from "@radix-ui/react-popover";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import type { ComponentProps } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { Api } from "../api";
 import { useNotesStore } from "../store";
@@ -22,17 +22,9 @@ export const NoteEditor = ({
   ...props
 }: NoteProps) => {
   const setNotesById = useNotesStore((state) => state.setNotesById);
-  const editorRef = useRef(null);
+  const setNote = useNotesStore((state) => state.setNote);
   const [URLPattern, setURLPattern] = useState(pattern);
   const [URLPatternWarning, setURLPatternWarning] = useState(false);
-
-  useEffect(() => {
-    if (editorRef.current && "focus" in editorRef.current) {
-      (editorRef.current as HTMLDivElement).focus();
-
-      document.getSelection()?.modify("move", "forward", "documentboundary");
-    }
-  }, []);
 
   const handleRemoveNote = async () => {
     Api.remove.note(id);
@@ -48,7 +40,7 @@ export const NoteEditor = ({
 
   const handleInput = useDebouncedCallback(
     async (text) => {
-      Api.set.note({ id, pattern: URLPattern, text });
+      setNote({ id, pattern: URLPattern, text });
     },
     600,
     { maxWait: 1000 },
