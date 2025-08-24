@@ -5,6 +5,8 @@ let subscriptionsSetup = false;
 // Store unsubscribe functions for cleanup
 let unsubscribeFunctions: (() => void)[] = [];
 
+const isDevEnv = import.meta.env.DEV || import.meta.env.MODE === "screenshot";
+
 /**
  * Deep comparison utility for arrays and objects
  */
@@ -38,7 +40,7 @@ const deepEqual = (a: unknown, b: unknown): boolean => {
  * This approach is more performant and doesn't require React hooks
  */
 export const setupDebugSubscriptions = () => {
-  if (!import.meta.env.DEV) return;
+  if (!isDevEnv) return;
 
   // Prevent multiple subscriptions
   if (subscriptionsSetup) {
@@ -56,8 +58,8 @@ export const setupDebugSubscriptions = () => {
   // Subscribe to settings store changes
   const unsubSettings = useSettingsStore.subscribe((state) => {
     const changed = {
-      active: state.active !== prevSettings.active,
       hotkey: state.hotkey !== prevSettings.hotkey,
+      hotkeyConflict: state.hotkeyConflict !== prevSettings.hotkeyConflict,
       theme: state.theme !== prevSettings.theme,
       defaultOpen: state.defaultOpen !== prevSettings.defaultOpen,
     };
@@ -66,8 +68,8 @@ export const setupDebugSubscriptions = () => {
       console.log("⚙️ Settings Store changed:", {
         changes: changed,
         current: {
-          active: state.active,
           hotkey: state.hotkey,
+          hotkeyConflict: state.hotkeyConflict,
           theme: state.theme,
           defaultOpen: state.defaultOpen,
         },
@@ -86,6 +88,8 @@ export const setupDebugSubscriptions = () => {
         state.firstTimeNoticeAck !== prevUI.firstTimeNoticeAck,
       position: !deepEqual(state.position, prevUI.position),
       hasCustomPosition: state.hasCustomPosition !== prevUI.hasCustomPosition,
+      dragHandleDiscovered:
+        state.dragHandleDiscovered !== prevUI.dragHandleDiscovered,
     };
 
     if (Object.values(changed).some(Boolean)) {
@@ -98,6 +102,7 @@ export const setupDebugSubscriptions = () => {
           firstTimeNoticeAck: state.firstTimeNoticeAck,
           position: state.position,
           hasCustomPosition: state.hasCustomPosition,
+          dragHandleDiscovered: state.dragHandleDiscovered,
         },
       });
       prevUI = state;
@@ -140,7 +145,7 @@ export const setupDebugSubscriptions = () => {
  * Useful for testing or if you need to reset subscriptions
  */
 export const cleanupDebugSubscriptions = () => {
-  if (!import.meta.env.DEV) return;
+  if (!isDevEnv) return;
 
   console.log("🧹 Cleaning up debug subscriptions...");
   unsubscribeFunctions.forEach((unsub) => unsub());

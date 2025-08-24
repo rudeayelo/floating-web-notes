@@ -13,6 +13,7 @@ export const SettingsDropdown = () => {
   const setActiveView = useUIStore((state) => state.setActiveView);
   const setScreenshotMode = useUIStore((state) => state.setScreenshotMode);
   const setNotes = useNotesStore((state) => state.setNotes);
+  const rootRef = useUIStore((state) => state.rootRef);
   const { isDevEnv } = useEnv();
 
   const handleNuke = async () => {
@@ -25,9 +26,7 @@ export const SettingsDropdown = () => {
     <Menu.Root modal={false}>
       <Menu.Trigger render={<IconButton icon="menu" id="Settings" />} />
 
-      <Menu.Portal
-        container={document.querySelector("floating-web-notes")?.shadowRoot}
-      >
+      <Menu.Portal container={rootRef}>
         <Menu.Positioner align="end">
           <Menu.Popup className="DropdownMenuContent">
             <Menu.Group>

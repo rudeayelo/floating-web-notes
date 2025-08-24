@@ -1,33 +1,23 @@
 import { nanoid } from "nanoid";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useNotesStore } from "../store";
+import { createExactPatternFromURL } from "../utils/urls";
 import { icons } from "./icons";
 
 export const CreateNoteState = () => {
-  const setNotesById = useNotesStore((state) => state.setNotesById);
+  const setNote = useNotesStore((state) => state.setNote);
 
   useHotkeys("shift + enter", async () => await createNote({ exact: true }));
   useHotkeys("enter", async () => await createNote());
 
   const createNote = async (options?: { exact: boolean }) => {
-    const { notesById } = await chrome.storage.local.get("notesById");
-
     const id = nanoid();
     const pattern = options?.exact
-      ? location.href.replace(/^(https?:\/\/)?/, "").replace(/#.*/, "*")
+      ? createExactPatternFromURL()
       : `${location.host}*`;
-    const newNote = {
-      id,
-      text: undefined,
-      pattern,
-    };
 
-    const newNotesById = notesById?.length ? [...notesById, id] : [id];
-
-    await chrome.storage.local.set({ [id]: newNote });
-    await chrome.storage.local.set({ notesById: newNotesById });
-
-    setNotesById(newNotesById);
+    // Persist via store; it will sync notesById internally
+    await setNote({ id, text: "", pattern });
   };
 
   return (

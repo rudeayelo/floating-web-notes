@@ -183,19 +183,26 @@ export const icons = {
     </svg>
   ),
   pin: (
-    <svg
-      data-icon="pin"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={strokeWidth}
-      stroke="currentColor"
-    >
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
+        d="M5 19L13.28 10.72M14 18V10H6"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M12 15a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm0 0v6M9.5 9A2.5 2.5 0 0 1 12 6.5"
       />
+      <path
+        d="M17.5 11H19C19.5523 11 20 10.7015 20 10.3333V5.66667C20 5.29848 19.5523 5 19 5H12C11.4477 5 11 5.29848 11 5.66667V6.5"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
+  popArrow: (
+    <svg width="20" height="10" viewBox="0 0 20 10" fill="none">
+      <path d="M9.66437 2.60207L4.80758 6.97318C4.07308 7.63423 3.11989 8 2.13172 8H0V10H20V8H18.5349C17.5468 8 16.5936 7.63423 15.8591 6.97318L11.0023 2.60207C10.622 2.2598 10.0447 2.25979 9.66437 2.60207Z" />
     </svg>
   ),
 } as const;

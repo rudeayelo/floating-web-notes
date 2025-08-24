@@ -176,6 +176,7 @@ h6 {
   position: absolute;
   top: 0;
   left: 0;
+  right: 0;
   /* z-index: 99999; */
 }
 
@@ -296,7 +297,7 @@ em {
 .HeaderEnd {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 :has(#root:hover) .Header::after {
@@ -392,12 +393,34 @@ em {
       inset -1px 0 0 var(--red-4),
       inset 0 0 0 2px var(--red-2);
 
-    & .TooltipArrow {
+    & .TooltipArrow > svg {
       fill: var(--red-1);
     }
   }
 
-  .TooltipArrow {
+  & .TooltipArrow {
+    &[data-side="top"] {
+      bottom: -5px;
+      rotate: 180deg;
+    }
+
+    &[data-side="bottom"] {
+      top: -5px;
+      rotate: 0deg;
+    }
+
+    &[data-side="left"] {
+      right: -13px;
+      rotate: 90deg;
+    }
+
+    &[data-side="right"] {
+      left: -13px;
+      rotate: -90deg;
+    }
+  }
+
+  & .TooltipArrow > svg {
     fill: var(--orange-2);
   }
 
@@ -414,7 +437,7 @@ em {
     box-shadow: var(--shadow-depth-1);
     text-shadow: 0 1px 0 var(--red-11);
 
-    & .TooltipArrow {
+    & .TooltipArrow > svg {
       fill: var(--red-9);
     }
   }
@@ -449,6 +472,8 @@ em {
   text-wrap: wrap;
 
   [data-typist-editor] {
+    white-space: pre-wrap;
+
     &:focus-within {
       outline: none;
     }
@@ -571,7 +596,6 @@ em {
 /* --------------------------------- Alerts --------------------------------- */
 
 .Alert {
-  margin-block: 8px 16px;
   padding: 8px;
   font-size: 13px;
   border-radius: 4px;
@@ -1063,17 +1087,5 @@ em {
   }
   to {
     transform: rotate(360deg);
-  }
-}
-
-/* -------------------------------------------------------------------------- */
-/*                               Screenshot mode                              */
-/* -------------------------------------------------------------------------- */
-
-[data-screenshot-mode] {
-  & .Container {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -40%) scale(2) !important;
   }
 }

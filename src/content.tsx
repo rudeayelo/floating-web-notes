@@ -1,5 +1,5 @@
 import "./font-face.css";
-import * as Tooltip from "@radix-ui/react-tooltip";
+import { Tooltip } from "@base-ui-components/react/tooltip";
 import { useState } from "react";
 import TurndownService from "turndown";
 import { App } from "./App";
@@ -43,7 +43,7 @@ export const FloatingWebNotes = () => {
   const [parentElement] = useState(() => document.querySelector("body"));
 
   return parentElement ? (
-    <Tooltip.Provider delayDuration={0} disableHoverableContent={true}>
+    <Tooltip.Provider closeDelay={0} timeout={0}>
       <ShadowDom parentElement={parentElement}>
         <App />
       </ShadowDom>

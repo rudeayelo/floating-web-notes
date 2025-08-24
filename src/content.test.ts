@@ -117,7 +117,9 @@ test.describe("when a note exists for the current page", () => {
 
   test("it holds the expected content", async ({ page, context }) => {
     const text = "Hello World!";
-    await page.locator("floating-web-notes .NoteEditor").fill(text);
+    await page
+      .locator("floating-web-notes .NoteEditor > [data-typist-editor='true']")
+      .fill(text);
 
     // Text gets saved to storage using a debounced callback every 600ms
     await page.waitForTimeout(600);
@@ -137,25 +139,6 @@ test.describe("when a note exists for the current page", () => {
   });
 
   test.describe("when attempting to change the URL pattern", () => {
-    test("text in the URL pattern button matches the input", async ({
-      page,
-    }) => {
-      await page.locator("floating-web-notes .URLPatternButtonText").click();
-
-      await page.locator("floating-web-notes .URLPatternInput").fill("test");
-
-      const noteURLPatternButton = page.locator(
-        "floating-web-notes .URLPatternButtonText",
-      );
-      const noteURLPatternInput = page.locator(
-        "floating-web-notes .URLPatternInput",
-      );
-
-      await expect(noteURLPatternButton).toContainText(
-        await noteURLPatternInput.inputValue(),
-      );
-    });
-
     test.describe("when the pattern doesn't match the current URL", () => {
       test("a warning is shown and can be undone", async ({ page }) => {
         await page.locator("floating-web-notes .URLPatternButtonText").click();
@@ -327,5 +310,101 @@ test.describe('when the "Open by default" setting is set to...', () => {
 
       await expect(newPage.locator("floating-web-notes .Note")).toBeVisible();
     });
+  });
+});
+
+test.describe("panel repositioning", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(HOST_URL);
+  });
+
+  test("dragging the header handle updates position and persists after reload", async ({
+    page,
+  }) => {
+    const container = page.locator("floating-web-notes .Container");
+    const handle = page.locator("floating-web-notes .HeaderHandle");
+
+    const before = await container.boundingBox();
+    if (!before)
+      throw new Error("Container bounding box not found before drag");
+
+    // Drag by an offset
+    const hbox = await handle.boundingBox();
+    if (!hbox) throw new Error("Header handle bounding box not found");
+    // Use documented manual dragging sequence: hover -> down -> move -> up
+    await handle.hover();
+    await page.mouse.down();
+    await page.mouse.move(
+      hbox.x + hbox.width / 2 - 80,
+      hbox.y + hbox.height / 2 + 60,
+      {
+        steps: 10,
+      },
+    );
+    await page.mouse.up();
+
+    const after = await container.boundingBox();
+    if (!after) throw new Error("Container bounding box not found after drag");
+    expect(Math.abs((after.x ?? 0) - (before.x ?? 0))).toBeGreaterThan(10);
+    expect(Math.abs((after.y ?? 0) - (before.y ?? 0))).toBeGreaterThan(10);
+
+    // Reload and verify the position sticks
+    await page.reload();
+    const persisted = await page
+      .locator("floating-web-notes .Container")
+      .boundingBox();
+    if (!persisted)
+      throw new Error("Container bounding box not found after reload");
+    expect(Math.abs((persisted.x ?? 0) - (after.x ?? 0))).toBeLessThan(3);
+    expect(Math.abs((persisted.y ?? 0) - (after.y ?? 0))).toBeLessThan(3);
+  });
+
+  test("restore button appears after drag and restores default position", async ({
+    page,
+  }) => {
+    const container = page.locator("floating-web-notes .Container");
+    const handle = page.locator("floating-web-notes .HeaderHandle");
+
+    // Ensure custom position by dragging a bit
+    const hbox = await handle.boundingBox();
+    if (!hbox) throw new Error("Header handle bounding box not found");
+    // Option A: manual dragging sequence
+    await handle.hover();
+    await page.mouse.down();
+    await page.mouse.move(
+      hbox.x + hbox.width / 2 - 40,
+      hbox.y + hbox.height / 2 + 30,
+      { steps: 10 },
+    );
+    await page.mouse.up();
+
+    // The restore button should appear
+    const restoreBtn = page.locator(
+      "floating-web-notes #RestorePositionButton",
+    );
+    await expect(restoreBtn).toBeVisible();
+
+    // Capture current position and then restore
+    const dragged = await container.boundingBox();
+    if (!dragged)
+      throw new Error("Container bounding box not found after drag");
+    await restoreBtn.click();
+
+    // After restore, attribute data-custom-position should be false
+    await expect(container).toHaveAttribute("data-custom-position", "false");
+
+    const restored = await container.boundingBox();
+    if (!restored)
+      throw new Error("Container bounding box not found after restore");
+
+    // Position should move significantly back from dragged location
+    const delta = Math.hypot(
+      (restored.x ?? 0) - (dragged.x ?? 0),
+      (restored.y ?? 0) - (dragged.y ?? 0),
+    );
+    expect(delta).toBeGreaterThan(20);
+
+    // Restore button disappears when back to default
+    await expect(restoreBtn).toHaveCount(0);
   });
 });

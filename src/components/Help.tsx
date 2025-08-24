@@ -70,6 +70,13 @@ export const Help = () => {
               If multiple note patterns match a page, all matching notes will be
               shown.
             </p>
+            <p>
+              You can fix the position of the notes panel by dragging it to a
+              new location on the page using the handle at the top of the panel,
+              it will then be attached to that position only for the current
+              url. A new button will appear at the top right of the panel to
+              restore its original position.
+            </p>
             <h2>Feedback</h2>
             <p>
               This is mostly a personal project built primarily for my own

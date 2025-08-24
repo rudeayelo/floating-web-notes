@@ -1,16 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Rnd } from "react-rnd";
 import { Help } from "./components/Help";
 import { Notes } from "./components/Notes";
 import { useNotesStore, useSettingsStore, useUIStore } from "./store";
 import styles from "./styles.css?inline";
 import { setupDebugSubscriptions } from "./utils/debugSubscriptions";
-import { render } from "./utils/render";
 
 export const App = () => {
-  const active = useSettingsStore((state) => state.active);
+  const active = useUIStore((state) => state.active);
   const activeView = useUIStore((state) => state.activeView);
-  const screenshotMode = useUIStore((state) => state.screenshotMode);
   const initializeUIStore = useUIStore((state) => state.initialize);
   const initializeSettingsStore = useSettingsStore((state) => state.initialize);
   const notesById = useNotesStore((state) => state.notesById);
@@ -18,6 +16,8 @@ export const App = () => {
   const position = useUIStore((state) => state.position);
   const hasCustomPosition = useUIStore((state) => state.hasCustomPosition);
   const setPosition = useUIStore((state) => state.setPosition);
+  const setRootRef = useUIStore((state) => state.setRootRef);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Setup debug subscriptions once
@@ -27,7 +27,8 @@ export const App = () => {
   useEffect(() => {
     initializeUIStore();
     initializeSettingsStore();
-  }, [initializeUIStore, initializeSettingsStore]);
+    setRootRef(rootRef);
+  }, [initializeUIStore, initializeSettingsStore, setRootRef]);
 
   // Update notes when active state or notesById changes
   // biome-ignore lint/correctness/useExhaustiveDependencies: dependencies are needed for notes sync
@@ -39,9 +40,8 @@ export const App = () => {
     <>
       <style type="text/css">{styles}</style>
 
-      <div id="root" {...(screenshotMode && { "data-screenshot-mode": true })}>
+      <div id="root" ref={rootRef}>
         <Rnd
-          className="Container"
           default={{
             ...position,
             width: "auto",
@@ -52,8 +52,9 @@ export const App = () => {
           bounds="body"
           enableResizing={false}
           onDragStop={(_e, d) => {
-            setPosition(window.location.href, { x: d.x, y: d.y });
+            setPosition({ x: d.x, y: d.y });
           }}
+          className="Container"
           {...(!hasCustomPosition && { "data-custom-position": false })}
         >
           {activeView === "help" ? <Help /> : <Notes />}
@@ -62,5 +63,3 @@ export const App = () => {
     </>
   ) : null;
 };
-
-render(<App />);

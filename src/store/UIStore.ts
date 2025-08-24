@@ -1,6 +1,12 @@
+import type { MutableRefObject } from "react";
 import { create } from "zustand";
 import { Api } from "../api";
 import type { Position } from "../types";
+import { getCurrentWebNotes } from "../utils/getCurrentWebNotes";
+import { cleanURL } from "../utils/urls";
+
+// Guard to ensure the runtime message listener is only set once
+let uiToggleListenerSetup = false;
 
 type UIState = {
   firstTimeNoticeAck: boolean;
@@ -13,21 +19,21 @@ type UIState = {
   setScreenshotMode: (mode: boolean) => void;
   position: Position;
   hasCustomPosition: boolean;
-  setPosition: (url: string, position: Position) => void;
+  setPosition: (position: Position) => void;
   restorePosition: (url: string) => void;
+  dragHandleDiscovered: boolean;
+  setDragHandleDiscovered: (value: boolean) => Promise<void>;
+  markDragHandleDiscovered: () => Promise<void>;
+  // Root ref for the container with id "root"
+  rootRef: MutableRefObject<HTMLDivElement | null> | null;
+  setRootRef: (ref: MutableRefObject<HTMLDivElement | null>) => void;
   initialize: () => Promise<void>;
 };
 
-const defaultPosition: Position = {
-  x: document.documentElement.clientWidth - 340 - 24,
-  y: 24,
-};
-
-const cleanURL = (url: string) => {
-  const u = new URL(url);
-  const hashPart = u.hash ? `#${u.hash.slice(1).split("?")[0]}` : "";
-  return `${u.hostname}${u.pathname}${hashPart}`;
-};
+const defaultPosition: Position =
+  import.meta.env.MODE === "screenshot"
+    ? { x: 150, y: 100 }
+    : { x: document.documentElement.clientWidth - 340 - 24, y: 24 };
 
 export const useUIStore = create<UIState>((set) => ({
   /* -------------------------------------------------------------------------- */
@@ -63,16 +69,36 @@ export const useUIStore = create<UIState>((set) => ({
   /* -------------------------------------------------------------------------- */
   /*                               Position                                     */
   /* -------------------------------------------------------------------------- */
-  position: { x: document.documentElement.clientWidth - 340 - 24, y: 24 },
+  position: defaultPosition,
   hasCustomPosition: false,
-  setPosition: (url: string, position: Position) => {
-    const cleanedUrl = cleanURL(url);
-    Api.set.position(cleanedUrl, position);
+  setPosition: (position: Position) => {
+    Api.set.position(cleanURL(), position);
     set({ position, hasCustomPosition: true });
   },
   restorePosition: (url: string) => {
     Api.remove.position(cleanURL(url));
     set({ position: defaultPosition, hasCustomPosition: false });
+  },
+
+  /* -------------------------------------------------------------------------- */
+  /*                         Drag handle discovery flag                         */
+  /* -------------------------------------------------------------------------- */
+  dragHandleDiscovered: false,
+  setDragHandleDiscovered: async (value: boolean) => {
+    await Api.set.dragHandleDiscovered(value);
+    set({ dragHandleDiscovered: value });
+  },
+  markDragHandleDiscovered: async () => {
+    await Api.set.dragHandleDiscovered(true);
+    set({ dragHandleDiscovered: true });
+  },
+
+  /* -------------------------------------------------------------------------- */
+  /*                                 Root ref                                   */
+  /* -------------------------------------------------------------------------- */
+  rootRef: null,
+  setRootRef: (ref: MutableRefObject<HTMLDivElement | null>) => {
+    set({ rootRef: ref });
   },
 
   /* -------------------------------------------------------------------------- */
@@ -82,11 +108,48 @@ export const useUIStore = create<UIState>((set) => ({
     const customPosition = await Api.get.position(
       cleanURL(window.location.href),
     );
+    const dragHandleDiscovered = await Api.get.dragHandleDiscovered();
+    const firstTimeNoticeAck = await Api.get.firstTimeNoticeAck();
+
+    // Compute initial active value based on settings and current notes
+    const [openDefault, initialVisibility, currentNotes] = await Promise.all([
+      Api.get.openDefault(),
+      Api.get.visibility(),
+      getCurrentWebNotes(),
+    ]);
+
+    let isActive = false;
+    const open = openDefault || "with-notes";
+
+    if (!firstTimeNoticeAck) {
+      isActive = true;
+    } else if (
+      (open === "never" && initialVisibility !== "visible") ||
+      (open === "with-notes" && !currentNotes.length) ||
+      initialVisibility === "hidden"
+    ) {
+      isActive = false;
+    } else {
+      isActive = true;
+    }
 
     set({
-      firstTimeNoticeAck: await Api.get.firstTimeNoticeAck(),
-      position: customPosition || defaultPosition,
+      firstTimeNoticeAck,
+      dragHandleDiscovered,
+      active: import.meta.env.MODE === "screenshot" ? true : isActive,
       hasCustomPosition: !!customPosition,
+      position: customPosition || defaultPosition,
     });
+
+    // Setup chrome message listener for toggle (only once)
+    if (!uiToggleListenerSetup) {
+      chrome.runtime.onMessage.addListener((msg) => {
+        if (msg.type === "toggleActive") {
+          const state = useUIStore.getState();
+          state.setActive(!state.active);
+        }
+      });
+      uiToggleListenerSetup = true;
+    }
   },
 }));

@@ -1,12 +1,20 @@
-import * as Tooltip from "@radix-ui/react-tooltip";
-import { useSettingsStore, useUIStore } from "../store";
+import { Tooltip } from "@base-ui-components/react/tooltip";
+import { useUIStore } from "../store";
 import { IconButton } from "./IconButton";
+import { icons } from "./icons";
 import { SettingsDropdown } from "./SettingsDropdown";
 
 export const Header = () => {
-  const setActive = useSettingsStore((state) => state.setActive);
+  const setActive = useUIStore((state) => state.setActive);
   const restorePosition = useUIStore((state) => state.restorePosition);
   const hasCustomPosition = useUIStore((state) => state.hasCustomPosition);
+  const dragHandleDiscovered = useUIStore(
+    (state) => state.dragHandleDiscovered,
+  );
+  const markDragHandleDiscovered = useUIStore(
+    (state) => state.markDragHandleDiscovered,
+  );
+  const rootRef = useUIStore((state) => state.rootRef);
 
   return (
     <div className="Header">
@@ -18,22 +26,50 @@ export const Header = () => {
         />
       </div>
 
-      <div className="HeaderHandle"></div>
+      <Tooltip.Root
+        delay={dragHandleDiscovered ? 3000 : 1000}
+        onOpenChange={(open) => {
+          if (open && !dragHandleDiscovered) {
+            // Mark as discovered the first time the tooltip opens
+            void markDragHandleDiscovered();
+          }
+        }}
+      >
+        <Tooltip.Trigger render={<div className="HeaderHandle" />} />
+        <Tooltip.Portal container={rootRef}>
+          <Tooltip.Positioner sideOffset={4}>
+            <Tooltip.Popup className="TooltipContent">
+              Drag the panel to fix its position somewhere on the current page
+              <Tooltip.Arrow className="TooltipArrow">
+                {icons.popArrow}
+              </Tooltip.Arrow>
+            </Tooltip.Popup>
+          </Tooltip.Positioner>
+        </Tooltip.Portal>
+      </Tooltip.Root>
 
       <div className="HeaderEnd">
         {hasCustomPosition && (
-          <Tooltip.Root>
-            <Tooltip.Trigger asChild>
-              <IconButton
-                icon="pin"
-                onClick={() => restorePosition(window.location.href)}
-                id="PinButton"
-              />
-            </Tooltip.Trigger>
-            <Tooltip.Content className="TooltipContent" sideOffset={4}>
-              Unpin window
-              <Tooltip.Arrow className="TooltipArrow" />
-            </Tooltip.Content>
+          <Tooltip.Root delay={0}>
+            <Tooltip.Trigger
+              render={
+                <IconButton
+                  icon="pin"
+                  onClick={() => restorePosition(window.location.href)}
+                  id="RestorePositionButton"
+                />
+              }
+            />
+            <Tooltip.Portal container={rootRef}>
+              <Tooltip.Positioner sideOffset={4}>
+                <Tooltip.Popup className="TooltipContent">
+                  Restore position
+                  <Tooltip.Arrow className="TooltipArrow">
+                    {icons.popArrow}
+                  </Tooltip.Arrow>
+                </Tooltip.Popup>
+              </Tooltip.Positioner>
+            </Tooltip.Portal>
           </Tooltip.Root>
         )}
 

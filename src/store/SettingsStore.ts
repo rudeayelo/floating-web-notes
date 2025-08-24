@@ -1,13 +1,12 @@
 import { create } from "zustand";
 import { Api } from "../api";
 import type { OpenOptions, ThemeOptions } from "../types";
-import { getCurrentWebNotes } from "../utils/getCurrentWebNotes";
+
+// UI-related initialization lives in UIStore
 
 type SettingsState = {
   hotkey: string;
   hotkeyConflict: boolean;
-  active: boolean;
-  setActive: (active: boolean) => Promise<void>;
   defaultOpen: OpenOptions;
   setDefaultOpen: (open: OpenOptions) => Promise<void>;
   theme: ThemeOptions;
@@ -15,24 +14,14 @@ type SettingsState = {
   initialize: () => Promise<void>;
 };
 
-// Flag to track if the message listener has been set up
-let isListenerSetup = false;
+// (No UI listeners here; see UIStore)
 
-export const useSettingsStore = create<SettingsState>((set, get) => ({
+export const useSettingsStore = create<SettingsState>((set) => ({
   /* -------------------------------------------------------------------------- */
   /*                                   Hotkey                                   */
   /* -------------------------------------------------------------------------- */
   hotkey: "Ctrl+N",
   hotkeyConflict: false,
-
-  /* -------------------------------------------------------------------------- */
-  /*                                Active State                                */
-  /* -------------------------------------------------------------------------- */
-  active: false,
-  setActive: async (active: boolean) => {
-    Api.set.visibility(active ? "visible" : "hidden");
-    set({ active });
-  },
 
   /* -------------------------------------------------------------------------- */
   /*                              Default Open                                  */
@@ -63,46 +52,18 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       }
     }
     const hasConflict = await Api.get.hotkeyConflict();
-
-    // Initialize active state based on conditions
-    const currentNotes = await getCurrentWebNotes();
-    const firstTimeNoticeAck = await Api.get.firstTimeNoticeAck();
-    const storageOpen = await Api.get.openDefault();
-    const initialVisibility = await Api.get.visibility();
     const storageTheme = await Api.get.theme();
+    const storageOpen = await Api.get.openDefault();
     const open = storageOpen || "with-notes";
     const theme = storageTheme || "light";
 
-    let isActive = false;
-
-    if (!firstTimeNoticeAck) {
-      isActive = true;
-    } else if (
-      (open === "never" && initialVisibility !== "visible") ||
-      (open === "with-notes" && !currentNotes.length) ||
-      initialVisibility === "hidden"
-    ) {
-      isActive = false;
-    } else {
-      isActive = true;
-    }
-
-    // Setup chrome message listener for toggle (only once)
-    if (!isListenerSetup) {
-      chrome.runtime.onMessage.addListener((msg) => {
-        if (msg.type === "toggleActive") {
-          const currentActive = get().active;
-          get().setActive(!currentActive);
-        }
-      });
-      isListenerSetup = true;
-    }
-
+    // Apply settings values to SettingsStore
     set({
       hotkeyConflict: hasConflict,
-      active: isActive,
       defaultOpen: open,
       theme,
     });
+
+    // UI visibility is handled in UIStore.initialize()
   },
 }));

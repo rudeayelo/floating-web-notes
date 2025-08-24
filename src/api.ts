@@ -39,47 +39,56 @@ export const Api = {
     allNotes: (): Promise<Note[]> => {
       return sendMessage({ type: "getAllNotes" });
     },
+    note: (id: string): Promise<Note> => {
+      return sendMessage({ type: "getNote", id });
+    },
     position: (url: string): Promise<Position> => {
       return sendMessage({ type: "getPosition", url });
+    },
+    dragHandleDiscovered: (): Promise<boolean> => {
+      return sendMessage({ type: "getDragHandleDiscovered" });
     },
   },
   set: {
     visibility: (value: "visible" | "hidden") => {
-      sendMessage({ type: "setVisibility", value });
+      return sendMessage({ type: "setVisibility", value });
     },
     openDefault: (value: OpenOptions) => {
-      sendMessage({ type: "setOpenDefault", value });
+      return sendMessage({ type: "setOpenDefault", value });
     },
     theme: (theme: ThemeOptions) => {
-      sendMessage({ type: "setTheme", theme });
+      return sendMessage({ type: "setTheme", theme });
     },
     firstTimeNoticeAck: (value: boolean) => {
-      sendMessage({ type: "setFirstTimeNoticeAck", value });
+      return sendMessage({ type: "setFirstTimeNoticeAck", value });
     },
     notesById: (notesById: string[]) => {
-      sendMessage({ type: "setNotesById", notesById });
+      return sendMessage({ type: "setNotesById", notesById });
     },
     note: ({ id, pattern, text }: Note) => {
-      sendMessage({ type: "setNote", id, pattern, text });
+      return sendMessage({ type: "setNote", id, pattern, text });
     },
     position: (url: string, position: Position) => {
-      sendMessage({ type: "setPosition", url, position });
+      return sendMessage({ type: "setPosition", url, position });
+    },
+    dragHandleDiscovered: (value: boolean) => {
+      return sendMessage({ type: "setDragHandleDiscovered", value });
     },
   },
   remove: {
     note: (id: string) => {
-      sendMessage({ type: "removeNote", id });
+      return sendMessage({ type: "removeNote", id });
     },
     position: (url: string) => {
-      sendMessage({ type: "removePosition", url });
+      return sendMessage({ type: "removePosition", url });
     },
   },
   do: {
     openExtensionPage: () => {
-      sendMessage({ type: "openExtensionPage" });
+      return sendMessage({ type: "openExtensionPage" });
     },
     reloadExtension: () => {
-      sendMessage({ type: "reloadExtension" });
+      return sendMessage({ type: "reloadExtension" });
     },
   },
 };

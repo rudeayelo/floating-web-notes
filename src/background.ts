@@ -59,12 +59,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "openExtensionPage") {
-    chrome.tabs.create({ url: "chrome://extensions/shortcuts" });
+    chrome.tabs
+      .create({ url: "chrome://extensions/shortcuts" })
+      .then(() => sendResponse(true));
     return true;
   }
 
   if (message.type === "reloadExtension") {
     chrome.runtime.reload();
+    sendResponse(true);
     return true;
   }
 
@@ -94,16 +97,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }: {
           [key: string]: { [key: number]: "visible" | "hidden" } | undefined;
         }) => {
-          if (!visibility && sender.tab?.id) {
-            chrome.storage.session.set({
-              visibility: { [sender.tab?.id]: message.value },
-            });
-          }
-          if (visibility && sender.tab?.id) {
-            chrome.storage.session.set({
-              visibility: { ...visibility, [sender.tab?.id]: message.value },
-            });
-          }
+          if (!sender.tab?.id) return;
+          const next = visibility
+            ? { ...visibility, [sender.tab.id]: message.value }
+            : { [sender.tab.id]: message.value };
+          chrome.storage.session
+            .set({ visibility: next })
+            .then(() => sendResponse(true));
         },
       );
     return true;
@@ -117,7 +117,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "setOpenDefault") {
-    chrome.storage.local.set({ open: message.value });
+    chrome.storage.local.set({ open: message.value }).then(() => {
+      sendResponse(true);
+    });
     return true;
   }
 
@@ -129,7 +131,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "setTheme") {
-    chrome.storage.local.set({ theme: message.theme });
+    chrome.storage.local.set({ theme: message.theme }).then(() => {
+      sendResponse(true);
+    });
     return true;
   }
 
@@ -144,8 +148,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  // Drag handle discovery flag
+  if (message.type === "getDragHandleDiscovered") {
+    chrome.storage.local
+      .get("dragHandleDiscovered")
+      .then(({ dragHandleDiscovered }) => {
+        sendResponse(Boolean(dragHandleDiscovered));
+      });
+    return true;
+  }
+
+  if (message.type === "setDragHandleDiscovered") {
+    chrome.storage.local
+      .set({ dragHandleDiscovered: Boolean(message.value) })
+      .then(() => sendResponse(true));
+    return true;
+  }
+
   if (message.type === "setFirstTimeNoticeAck") {
-    chrome.storage.local.set({ firstTimeNoticeAck: message.value });
+    chrome.storage.local.set({ firstTimeNoticeAck: message.value }).then(() => {
+      sendResponse(true);
+    });
     return true;
   }
 
@@ -165,24 +188,55 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message.type === "getNote") {
+    chrome.storage.local.get(message.id).then((result) => {
+      sendResponse(result[message.id]);
+    });
+    return true;
+  }
+
   if (message.type === "setNotesById") {
-    chrome.storage.local.set({ notesById: message.notesById });
+    chrome.storage.local.set({ notesById: message.notesById }).then(() => {
+      sendResponse(true);
+    });
     return true;
   }
 
   if (message.type === "setNote") {
-    chrome.storage.local.set({
-      [message.id]: {
-        id: message.id,
-        pattern: message.pattern,
-        text: message.text,
-      },
+    // Persist note and ensure notesById includes the id (idempotent)
+    chrome.storage.local.get("notesById").then(({ notesById }) => {
+      const ids: string[] = Array.isArray(notesById) ? notesById : [];
+      const hasId = ids.includes(message.id);
+      const newIds = hasId ? ids : [...ids, message.id];
+
+      chrome.storage.local
+        .set({
+          [message.id]: {
+            id: message.id,
+            pattern: message.pattern,
+            text: message.text,
+          },
+          notesById: newIds,
+        })
+        .then(() => {
+          sendResponse({ ok: true, id: message.id });
+        });
     });
     return true;
   }
 
   if (message.type === "removeNote") {
-    chrome.storage.local.remove(message.id);
+    // Remove note id from index and delete the note entry
+    chrome.storage.local.get("notesById").then(({ notesById }) => {
+      const ids: string[] = Array.isArray(notesById) ? notesById : [];
+      const newIds = ids.filter((id) => id !== message.id);
+
+      chrome.storage.local.set({ notesById: newIds }).then(() => {
+        chrome.storage.local.remove(message.id).then(() => {
+          sendResponse(true);
+        });
+      });
+    });
     return true;
   }
 
@@ -197,12 +251,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === "setPosition") {
     chrome.storage.local.get("urlState").then(({ urlState }) => {
-      chrome.storage.local.set({
-        urlState: {
-          ...urlState,
-          [message.url]: { position: message.position },
-        },
-      });
+      chrome.storage.local
+        .set({
+          urlState: {
+            ...urlState,
+            [message.url]: { position: message.position },
+          },
+        })
+        .then(() => {
+          sendResponse(true);
+        });
     });
 
     return true;
@@ -212,9 +270,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.storage.local.get("urlState").then(({ urlState }) => {
       const newUrlState = { ...urlState };
       delete newUrlState[message.url];
-      chrome.storage.local.set({
-        urlState: newUrlState,
-      });
+      chrome.storage.local
+        .set({
+          urlState: newUrlState,
+        })
+        .then(() => {
+          sendResponse(true);
+        });
     });
 
     return true;
