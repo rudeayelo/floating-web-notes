@@ -23,10 +23,7 @@ export const NoteEditor = ({
   };
 
   const handleInput = useDebouncedCallback(
-    async (text) => {
-      // Persist via store; background manages notesById
-      await setNote({ id, pattern, text });
-    },
+    async (text) => await setNote({ id, pattern, text }),
     600,
     { maxWait: 1000 },
   );

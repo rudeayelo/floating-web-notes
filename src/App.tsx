@@ -11,7 +11,6 @@ export const App = () => {
   const activeView = useUIStore((state) => state.activeView);
   const initializeUIStore = useUIStore((state) => state.initialize);
   const initializeSettingsStore = useSettingsStore((state) => state.initialize);
-  const notesById = useNotesStore((state) => state.notesById);
   const updateNotes = useNotesStore((state) => state.updateNotes);
   const position = useUIStore((state) => state.position);
   const hasCustomPosition = useUIStore((state) => state.hasCustomPosition);
@@ -30,11 +29,11 @@ export const App = () => {
     setRootRef(rootRef);
   }, [initializeUIStore, initializeSettingsStore, setRootRef]);
 
-  // Update notes when active state or notesById changes
+  // Update notes on load and when active state changes
   // biome-ignore lint/correctness/useExhaustiveDependencies: dependencies are needed for notes sync
   useEffect(() => {
     updateNotes();
-  }, [active, notesById, updateNotes]);
+  }, [active, updateNotes]);
 
   return active ? (
     <>

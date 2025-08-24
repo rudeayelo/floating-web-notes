@@ -113,7 +113,6 @@ export const setupDebugSubscriptions = () => {
   const unsubNotes = useNotesStore.subscribe((state) => {
     const changed = {
       notes: !deepEqual(state.notes, prevNotes.notes),
-      notesById: !deepEqual(state.notesById, prevNotes.notesById),
     };
 
     if (Object.values(changed).some(Boolean)) {
@@ -121,9 +120,7 @@ export const setupDebugSubscriptions = () => {
         changes: changed,
         current: {
           notesCount: state.notes.length,
-          notesByIdCount: state.notesById.length,
           notes: state.notes,
-          notesById: state.notesById,
         },
       });
 

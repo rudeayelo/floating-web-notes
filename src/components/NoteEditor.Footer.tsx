@@ -16,6 +16,7 @@ export const NoteFooter = ({ id, pattern, onRemoveNote }: NoteFooterProps) => {
   const setNote = useNotesStore((state) => state.setNote);
   const getNote = useNotesStore((state) => state.getNote);
   const updateNotes = useNotesStore((state) => state.updateNotes);
+  const forceNotesUpdate = useNotesStore((state) => state.forceNotesUpdate);
   const [URLPattern, setURLPattern] = useState(pattern);
   const [URLPatternWarning, setURLPatternWarning] = useState(false);
   const rootRef = useUIStore((state) => state.rootRef);
@@ -32,7 +33,8 @@ export const NoteFooter = ({ id, pattern, onRemoveNote }: NoteFooterProps) => {
       pattern: URLPattern,
       text: note.text,
     });
-    URLPatternWarning && updateNotes();
+    await updateNotes();
+    forceNotesUpdate();
   };
 
   const resetURLPattern = () => {

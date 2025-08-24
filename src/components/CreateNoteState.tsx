@@ -16,7 +16,6 @@ export const CreateNoteState = () => {
       ? createExactPatternFromURL()
       : `${location.host}*`;
 
-    // Persist via store; it will sync notesById internally
     await setNote({ id, text: "", pattern });
   };
 

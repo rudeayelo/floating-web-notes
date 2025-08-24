@@ -8,10 +8,10 @@ type NotesState = {
   setNotes: (notes: Note[]) => void;
   setNote: (note: Note) => void;
   getNote: (id: string) => Promise<Note>;
-  notesById: string[];
-  setNotesById: (notesById: string[]) => void;
   removeNote: (id: string) => Promise<void>;
   updateNotes: () => Promise<void>;
+  notesKey: number | null;
+  forceNotesUpdate: () => void;
 };
 
 export const useNotesStore = create<NotesState>((set) => ({
@@ -41,19 +41,6 @@ export const useNotesStore = create<NotesState>((set) => ({
   getNote: async (id: string) => {
     return Api.get.note(id);
   },
-
-  /* -------------------------------------------------------------------------- */
-  /*                                Notes By ID                                 */
-  /* -------------------------------------------------------------------------- */
-  notesById: [],
-  setNotesById: async (notesById: string[]) => {
-    await Api.set.notesById(notesById);
-    set({ notesById });
-  },
-
-  /* -------------------------------------------------------------------------- */
-  /*                                Remove note                                 */
-  /* -------------------------------------------------------------------------- */
   removeNote: async (id: string) => {
     await Api.remove.note(id);
     const latestIds = await Api.get.notesById();
@@ -61,6 +48,10 @@ export const useNotesStore = create<NotesState>((set) => ({
       notes: state.notes.filter((n) => n.id !== id),
       notesById: latestIds,
     }));
+  },
+  notesKey: null,
+  forceNotesUpdate: () => {
+    set({ notesKey: Date.now() });
   },
 
   /* -------------------------------------------------------------------------- */
