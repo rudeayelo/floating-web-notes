@@ -1,13 +1,12 @@
 import { Api } from "../api";
-import { globToRegExp } from "./globToRegExp";
+import { urlMatchesPattern } from "./urls";
 
 export const getCurrentWebNotes = async () => {
   const allNotes = await Api.get.allNotes();
 
-  const currentPageNotes = allNotes.filter(({ pattern }) => {
-    const rgx = globToRegExp(`*${pattern}`);
-    return rgx.test(location.href);
-  });
+  const currentPageNotes = allNotes.filter(({ pattern }) =>
+    urlMatchesPattern({ pattern }),
+  );
 
   return currentPageNotes;
 };
