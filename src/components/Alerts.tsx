@@ -31,7 +31,7 @@ export const Alerts = () => {
   };
 
   // Pinned changelog version (major.minor.patch.subpatch); bump when adding new changelog notes
-  const PINNED_CHANGELOG_VERSION = "0.0.12.0" as const;
+  const PINNED_CHANGELOG_VERSION = "0.1.0.0" as const;
   const showChangelog = useMemo(() => {
     // Default: don't show on first install or if no stored version
     if (!previousVersion) return false;
