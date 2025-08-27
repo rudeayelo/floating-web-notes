@@ -9,10 +9,9 @@ import { icons } from "./icons";
 interface NoteFooterProps {
   id: string;
   pattern: string;
-  onRemoveNote: () => void;
 }
 
-export const NoteFooter = ({ id, pattern, onRemoveNote }: NoteFooterProps) => {
+export const NoteFooter = ({ id, pattern }: NoteFooterProps) => {
   const setNote = useNotesStore((state) => state.setNote);
   const getNote = useNotesStore((state) => state.getNote);
   const updateNotes = useNotesStore((state) => state.updateNotes);
@@ -20,6 +19,12 @@ export const NoteFooter = ({ id, pattern, onRemoveNote }: NoteFooterProps) => {
   const [URLPattern, setURLPattern] = useState(pattern);
   const [URLPatternWarning, setURLPatternWarning] = useState(false);
   const rootRef = useUIStore((state) => state.rootRef);
+  const removeNote = useNotesStore((state) => state.removeNote);
+
+  const onRemoveNote = async () => {
+    await removeNote(id);
+    forceNotesUpdate();
+  };
 
   const handleURLPatternChange = useCallback((pattern: string) => {
     setURLPatternWarning(!urlMatchesPattern({ pattern }));

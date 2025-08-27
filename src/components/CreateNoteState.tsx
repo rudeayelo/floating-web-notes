@@ -6,6 +6,7 @@ import { icons } from "./icons";
 
 export const CreateNoteState = () => {
   const setNote = useNotesStore((state) => state.setNote);
+  const forceNotesUpdate = useNotesStore((state) => state.forceNotesUpdate);
 
   useHotkeys("shift + enter", async () => await createNote({ exact: true }));
   useHotkeys("enter", async () => await createNote());
@@ -17,6 +18,7 @@ export const CreateNoteState = () => {
       : `${location.host}*`;
 
     await setNote({ id, text: "", pattern });
+    forceNotesUpdate();
   };
 
   return (

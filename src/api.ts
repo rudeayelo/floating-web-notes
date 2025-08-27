@@ -15,6 +15,9 @@ const sendMessage = <T>(message: {
 
 export const Api = {
   get: {
+    previousVersion: (): Promise<string | null> => {
+      return sendMessage({ type: "getPreviousVersion" });
+    },
     firstTimeNoticeAck: (): Promise<boolean> => {
       return sendMessage({ type: "getFirstTimeNoticeAck" });
     },
@@ -58,6 +61,9 @@ export const Api = {
     },
     theme: (theme: ThemeOptions) => {
       return sendMessage({ type: "setTheme", theme });
+    },
+    previousVersion: (value: string) => {
+      return sendMessage({ type: "setPreviousVersion", value });
     },
     firstTimeNoticeAck: (value: boolean) => {
       return sendMessage({ type: "setFirstTimeNoticeAck", value });

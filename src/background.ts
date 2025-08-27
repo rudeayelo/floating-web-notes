@@ -19,6 +19,13 @@ chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
     checkHotkeyConflict();
   }
+
+  if (
+    details.reason === chrome.runtime.OnInstalledReason.UPDATE &&
+    details.previousVersion
+  ) {
+    chrome.storage.local.set({ previousVersion: details.previousVersion });
+  }
 });
 
 // Open the Floating Web Notes window when the extension icon is clicked
@@ -279,6 +286,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
     });
 
+    return true;
+  }
+
+  if (message.type === "getPreviousVersion") {
+    chrome.storage.local.get("previousVersion").then(({ previousVersion }) => {
+      sendResponse(previousVersion || null);
+    });
+    return true;
+  }
+
+  if (message.type === "setPreviousVersion") {
+    const value = String(message.value ?? "");
+    chrome.storage.local
+      .set({ previousVersion: value })
+      .then(() => sendResponse(true));
     return true;
   }
 });

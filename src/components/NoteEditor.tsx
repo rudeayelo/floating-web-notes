@@ -16,11 +16,6 @@ export const NoteEditor = ({
   ...props
 }: NoteProps) => {
   const setNote = useNotesStore((state) => state.setNote);
-  const removeNote = useNotesStore((state) => state.removeNote);
-
-  const handleRemoveNote = async () => {
-    await removeNote(id);
-  };
 
   const handleInput = useDebouncedCallback(
     async (text) => await setNote({ id, pattern, text }),
@@ -40,7 +35,7 @@ export const NoteEditor = ({
         autoFocus={true}
       />
 
-      <NoteFooter id={id} pattern={pattern} onRemoveNote={handleRemoveNote} />
+      <NoteFooter id={id} pattern={pattern} />
     </div>
   );
 };

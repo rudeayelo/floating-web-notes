@@ -7,6 +7,8 @@ import type { OpenOptions, ThemeOptions } from "../types";
 type SettingsState = {
   hotkey: string;
   hotkeyConflict: boolean;
+  previousVersion: string | null;
+  setPreviousVersion: (version: string) => Promise<void>;
   defaultOpen: OpenOptions;
   setDefaultOpen: (open: OpenOptions) => Promise<void>;
   theme: ThemeOptions;
@@ -22,6 +24,11 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   /* -------------------------------------------------------------------------- */
   hotkey: "Ctrl+N",
   hotkeyConflict: false,
+  previousVersion: null,
+  setPreviousVersion: async (version: string) => {
+    await Api.set.previousVersion(version);
+    set({ previousVersion: version });
+  },
 
   /* -------------------------------------------------------------------------- */
   /*                              Default Open                                  */
@@ -54,6 +61,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     const hasConflict = await Api.get.hotkeyConflict();
     const storageTheme = await Api.get.theme();
     const storageOpen = await Api.get.openDefault();
+    const previousVersion = await Api.get.previousVersion();
     const open = storageOpen || "with-notes";
     const theme = storageTheme || "light";
 
@@ -62,6 +70,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       hotkeyConflict: hasConflict,
       defaultOpen: open,
       theme,
+      previousVersion,
     });
 
     // UI visibility is handled in UIStore.initialize()

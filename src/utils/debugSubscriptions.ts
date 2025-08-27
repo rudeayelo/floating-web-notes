@@ -62,6 +62,7 @@ export const setupDebugSubscriptions = () => {
       hotkeyConflict: state.hotkeyConflict !== prevSettings.hotkeyConflict,
       theme: state.theme !== prevSettings.theme,
       defaultOpen: state.defaultOpen !== prevSettings.defaultOpen,
+      previousVersion: state.previousVersion !== prevSettings.previousVersion,
     };
 
     if (Object.values(changed).some(Boolean)) {
@@ -72,6 +73,7 @@ export const setupDebugSubscriptions = () => {
           hotkeyConflict: state.hotkeyConflict,
           theme: state.theme,
           defaultOpen: state.defaultOpen,
+          previousVersion: state.previousVersion,
         },
       });
       prevSettings = state;

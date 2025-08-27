@@ -177,7 +177,7 @@ h6 {
   top: 0;
   left: 0;
   right: 0;
-  /* z-index: 99999; */
+  z-index: 99999;
 }
 
 .Container {
@@ -595,13 +595,56 @@ em {
 
 /* --------------------------------- Alerts --------------------------------- */
 
+.Alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  &:empty {
+    display: none;
+  }
+}
+
 .Alert {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 8px;
   padding: 8px;
-  font-size: 13px;
+  font-size: 12px;
   border-radius: 4px;
   background: var(--alert-bg);
   border: 1px solid var(--alert-border);
   color: var(--alert-color);
+
+  p {
+    text-wrap: unset;
+  }
+}
+
+.AlertHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  align-self: stretch;
+}
+
+.AlertHeading {
+  display: flex;
+  align-items: center;
+  padding-inline: 6px;
+  padding-block: 2px;
+  border-radius: 4px;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--blue-11);
+  background: var(--blue-3);
+  font-weight: 600;
+
+  & > svg {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 .AlertActionButton {
@@ -617,7 +660,7 @@ em {
   border-radius: 4px;
   padding-block: 4px;
   padding-inline: 8px 12px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   background: var(--bg);
@@ -639,6 +682,13 @@ em {
   --alert-bg: var(--orange-3);
   --alert-border: var(--orange-6);
   --alert-color: var(--orange-11);
+}
+
+.Changelog {
+  --alert-bg: var(--gray-1);
+  --alert-border: var(--gray-4);
+  --alert-color: var(--gray-12);
+  padding-bottom: 12px;
 }
 
 .HotkeyError {
@@ -1088,4 +1138,17 @@ em {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* -------------------------------------------------------------------------- */
+/*                                    Badge                                   */
+/* -------------------------------------------------------------------------- */
+
+.Badge {
+  display: inline-block;
+  font-weight: 600;
+}
+
+.BadgeNew {
+  color: var(--blue-11);
 }
