@@ -1,4 +1,4 @@
-import type { MutableRefObject } from "react";
+import type { RefObject } from "react";
 import { create } from "zustand";
 import { Api } from "../api";
 import type { Position } from "../types";
@@ -25,8 +25,8 @@ type UIState = {
   setDragHandleDiscovered: (value: boolean) => Promise<void>;
   markDragHandleDiscovered: () => Promise<void>;
   // Root ref for the container with id "root"
-  rootRef: MutableRefObject<HTMLDivElement | null> | null;
-  setRootRef: (ref: MutableRefObject<HTMLDivElement | null>) => void;
+  rootRef: RefObject<HTMLDivElement | null> | null;
+  setRootRef: (ref: RefObject<HTMLDivElement | null>) => void;
   initialize: () => Promise<void>;
 };
 
@@ -97,7 +97,7 @@ export const useUIStore = create<UIState>((set) => ({
   /*                                 Root ref                                   */
   /* -------------------------------------------------------------------------- */
   rootRef: null,
-  setRootRef: (ref: MutableRefObject<HTMLDivElement | null>) => {
+  setRootRef: (ref: RefObject<HTMLDivElement | null>) => {
     set({ rootRef: ref });
   },
 
