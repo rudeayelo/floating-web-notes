@@ -21,27 +21,27 @@
     "@base-ui-components/react": "1.0.0-beta.2",
     "@doist/typist": "8.0.2",
     "nanoid": "5.1.5",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
     "react-hotkeys-hook": "5.1.0",
     "react-rnd": "10.5.2",
-    "turndown": "7.2.0",
+    "turndown": "7.2.1",
     "use-debounce": "10.0.5",
-    "zustand": "5.0.6"
+    "zustand": "5.0.8"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.1.1",
-    "@crxjs/vite-plugin": "2.0.2",
-    "@playwright/test": "1.54.1",
-    "@types/chrome": "0.1.0",
-    "@types/node": "24.0.13",
-    "@types/react": "19.1.8",
-    "@types/react-dom": "19.1.6",
+    "@biomejs/biome": "2.2.2",
+    "@crxjs/vite-plugin": "2.2.0",
+    "@playwright/test": "1.55.0",
+    "@types/chrome": "0.1.4",
+    "@types/node": "24.3.0",
+    "@types/react": "19.1.12",
+    "@types/react-dom": "19.1.9",
     "@types/sanitize-html": "2.16.0",
     "@types/turndown": "5.0.5",
-    "@vitejs/plugin-react": "4.6.0",
-    "concurrently": "9.2.0",
-    "typescript": "5.8.3",
-    "vite": "7.0.4"
+    "@vitejs/plugin-react": "5.0.2",
+    "concurrently": "9.2.1",
+    "typescript": "5.9.2",
+    "vite": "7.1.3"
   }
 }
