@@ -1,17 +1,17 @@
-import * as RadixScrollArea from "@radix-ui/react-scroll-area";
+import { ScrollArea as BaseScrollArea } from "@base-ui-components/react/scroll-area";
 import type { ReactNode } from "react";
 
 export const ScrollArea = ({ children }: { children: ReactNode }) => (
-  <RadixScrollArea.Root className="ScrollAreaRoot">
-    <RadixScrollArea.Viewport className="ScrollAreaViewport">
+  <BaseScrollArea.Root className="ScrollAreaRoot">
+    <BaseScrollArea.Viewport className="ScrollAreaViewport">
       {children}
-    </RadixScrollArea.Viewport>
-    <RadixScrollArea.Scrollbar
+    </BaseScrollArea.Viewport>
+    <BaseScrollArea.Scrollbar
       className="ScrollAreaScrollbar"
       orientation="vertical"
     >
-      <RadixScrollArea.Thumb className="ScrollAreaThumb" />
-    </RadixScrollArea.Scrollbar>
-    <RadixScrollArea.Corner className="ScrollAreaCorner" />
-  </RadixScrollArea.Root>
+      <BaseScrollArea.Thumb className="ScrollAreaThumb" />
+    </BaseScrollArea.Scrollbar>
+    <BaseScrollArea.Corner className="ScrollAreaCorner" />
+  </BaseScrollArea.Root>
 );

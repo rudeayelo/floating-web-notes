@@ -442,16 +442,21 @@ em {
     }
   }
 }
-.TooltipContent[data-state="delayed-open"][data-side="top"] {
+/* Base UI animation flags for Tooltip */
+.TooltipContent[data-starting-style][data-side="top"],
+.TooltipContent[data-ending-style][data-side="top"] {
   animation-name: slideDownAndFade;
 }
-.TooltipContent[data-state="delayed-open"][data-side="right"] {
+.TooltipContent[data-starting-style][data-side="right"],
+.TooltipContent[data-ending-style][data-side="right"] {
   animation-name: slideLeftAndFade;
 }
-.TooltipContent[data-state="delayed-open"][data-side="bottom"] {
+.TooltipContent[data-starting-style][data-side="bottom"],
+.TooltipContent[data-ending-style][data-side="bottom"] {
   animation-name: slideUpAndFade;
 }
-.TooltipContent[data-state="delayed-open"][data-side="left"] {
+.TooltipContent[data-starting-style][data-side="left"],
+.TooltipContent[data-ending-style][data-side="left"] {
   animation-name: slideRightAndFade;
 }
 
@@ -742,7 +747,7 @@ em {
     max-width: 90%;
   }
 }
-:has(> [data-radix-popper-content-wrapper]) .URLPatternButton {
+.URLPatternButton[data-popup-open] {
   opacity: 1;
 }
 
@@ -764,16 +769,21 @@ em {
   will-change: transform, opacity;
 }
 
-.PopoverContent[data-state="open"][data-side="top"] {
+/* Base UI animation flags */
+.PopoverContent[data-starting-style][data-side="top"],
+.PopoverContent[data-ending-style][data-side="top"] {
   animation-name: slideDownAndFade;
 }
-.PopoverContent[data-state="open"][data-side="right"] {
+.PopoverContent[data-starting-style][data-side="right"],
+.PopoverContent[data-ending-style][data-side="right"] {
   animation-name: slideLeftAndFade;
 }
-.PopoverContent[data-state="open"][data-side="bottom"] {
+.PopoverContent[data-starting-style][data-side="bottom"],
+.PopoverContent[data-ending-style][data-side="bottom"] {
   animation-name: slideUpAndFade;
 }
-.PopoverContent[data-state="open"][data-side="left"] {
+.PopoverContent[data-starting-style][data-side="left"],
+.PopoverContent[data-ending-style][data-side="left"] {
   animation-name: slideRightAndFade;
 }
 
@@ -1046,6 +1056,9 @@ em {
   user-select: none;
   touch-action: none;
   padding: 6px;
+  /* Base UI recommended: hidden by default, fade in on hover/scroll */
+  opacity: 0;
+  transition: opacity 150ms 300ms;
 }
 .ScrollAreaScrollbar[data-orientation="vertical"] {
   width: var(--scrollbar-size);
@@ -1053,6 +1066,14 @@ em {
 .ScrollAreaScrollbar[data-orientation="horizontal"] {
   flex-direction: column;
   height: var(--scrollbar-size);
+}
+
+/* Show scrollbars when the scroll area is hovered or scrolling */
+.ScrollAreaScrollbar[data-hovering],
+.ScrollAreaScrollbar[data-scrolling] {
+  opacity: 1;
+  transition-duration: 75ms;
+  transition-delay: 0ms;
 }
 
 .ScrollAreaThumb {
