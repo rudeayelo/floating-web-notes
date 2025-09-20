@@ -33,15 +33,15 @@
     "@biomejs/biome": "2.2.4",
     "@crxjs/vite-plugin": "2.2.0",
     "@playwright/test": "1.55.0",
-    "@types/chrome": "0.1.11",
-    "@types/node": "24.5.0",
+    "@types/chrome": "0.1.12",
+    "@types/node": "24.5.2",
     "@types/react": "19.1.13",
     "@types/react-dom": "19.1.9",
     "@types/sanitize-html": "2.16.0",
     "@types/turndown": "5.0.5",
-    "@vitejs/plugin-react": "5.0.2",
+    "@vitejs/plugin-react": "5.0.3",
     "concurrently": "9.2.1",
     "typescript": "5.9.2",
-    "vite": "7.1.5"
+    "vite": "7.1.6"
   }
 }
