@@ -18,5 +18,7 @@ export type Position = {
 };
 
 export type UrlState = {
-  [key: string]: Position | undefined;
+  [key: string]: { position?: Position } | undefined;
 };
+
+export type Visibility = { [key: number]: "visible" | "hidden" };

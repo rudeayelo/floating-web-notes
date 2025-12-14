@@ -1,3 +1,5 @@
+import type { UrlState, Visibility } from "./types";
+
 const checkHotkeyConflict = (cb?: (arg0: boolean) => unknown) => {
   chrome.commands.getAll((commands) => {
     let hotkeyConflict = false;
@@ -32,21 +34,22 @@ type VisibilityState = { [key: number]: "visible" | "hidden" };
 
 // Open the Floating Web Notes window when the extension icon is clicked
 chrome.action.onClicked.addListener((activeTab) => {
-  chrome.storage.session.get("visibility").then((result) => {
-    const visibility = result.visibility as VisibilityState | undefined;
-    if (visibility && activeTab.id && visibility[activeTab.id]) {
-      chrome.storage.session.set({
-        visibility: {
-          ...visibility,
-          [activeTab.id]:
-            visibility[activeTab.id] === "visible" ? "hidden" : "visible",
-        },
+  chrome.storage.session
+    .get("visibility")
+    .then(({ visibility }: { visibility?: Visibility }) => {
+      if (visibility && activeTab.id && visibility[activeTab.id]) {
+        chrome.storage.session.set({
+          visibility: {
+            ...visibility,
+            [activeTab.id]:
+              visibility[activeTab.id] === "visible" ? "hidden" : "visible",
+          },
+        });
+      }
+      chrome.tabs.sendMessage(activeTab.id as number, {
+        type: "toggleActive",
       });
-    }
-    chrome.tabs.sendMessage(activeTab.id as number, {
-      type: "toggleActive",
     });
-  });
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -74,18 +77,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "getVisibility") {
-    chrome.storage.session.get("visibility").then((result) => {
-      const visibility = result.visibility as VisibilityState | undefined;
-      sendResponse(
-        visibility && sender.tab?.id && visibility[sender.tab?.id],
+    chrome.storage.session
+      .get("visibility")
+      .then(
+        ({
+          visibility,
+        }: {
+          visibility?: Visibility;
+        }) => {
+          sendResponse(
+            visibility && sender.tab?.id && visibility[sender.tab?.id],
+          );
+        },
       );
     });
     return true;
   }
 
-  if (message.type === "setVisibility") {
-    chrome.storage.session.get("visibility").then((result) => {
-      const visibility = result.visibility as VisibilityState | undefined;
+if (message.type === "setVisibility") {
+  chrome.storage.session
+    .get("visibility")
+    .then(({ visibility }: { visibility?: Visibility }) => {
       if (!sender.tab?.id) return;
       const next = visibility
         ? { ...visibility, [sender.tab.id]: message.value }
@@ -94,154 +106,153 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         .set({ visibility: next })
         .then(() => sendResponse(true));
     });
-    return true;
-  }
+  return true;
+}
 
-  if (message.type === "getOpenDefault") {
-    chrome.storage.local.get("open").then(({ open }) => {
-      sendResponse(open);
-    });
-    return true;
-  }
+if (message.type === "getOpenDefault") {
+  chrome.storage.local.get("open").then(({ open }) => {
+    sendResponse(open);
+  });
+  return true;
+}
 
-  if (message.type === "setOpenDefault") {
-    chrome.storage.local.set({ open: message.value }).then(() => {
-      sendResponse(true);
-    });
-    return true;
-  }
+if (message.type === "setOpenDefault") {
+  chrome.storage.local.set({ open: message.value }).then(() => {
+    sendResponse(true);
+  });
+  return true;
+}
 
-  if (message.type === "getTheme") {
-    chrome.storage.local.get("theme").then(({ theme }) => {
-      sendResponse(theme);
-    });
-    return true;
-  }
+if (message.type === "getTheme") {
+  chrome.storage.local.get("theme").then(({ theme }) => {
+    sendResponse(theme);
+  });
+  return true;
+}
 
-  if (message.type === "setTheme") {
-    chrome.storage.local.set({ theme: message.theme }).then(() => {
-      sendResponse(true);
-    });
-    return true;
-  }
+if (message.type === "setTheme") {
+  chrome.storage.local.set({ theme: message.theme }).then(() => {
+    sendResponse(true);
+  });
+  return true;
+}
 
-  if (message.type === "getFirstTimeNoticeAck") {
-    chrome.storage.local.get("firstTimeNoticeAck").then((result) => {
-      const firstTimeNoticeAck = result.firstTimeNoticeAck as boolean | undefined;
+if (message.type === "getFirstTimeNoticeAck") {
+  chrome.storage.local
+    .get("firstTimeNoticeAck")
+    .then(({ firstTimeNoticeAck }: { firstTimeNoticeAck?: boolean }) => {
       sendResponse(firstTimeNoticeAck || false);
     });
-    return true;
-  }
+  return true;
+}
 
-  // Drag handle discovery flag
-  if (message.type === "getDragHandleDiscovered") {
+// Drag handle discovery flag
+if (message.type === "getDragHandleDiscovered") {
+  chrome.storage.local
+    .get("dragHandleDiscovered")
+    .then(({ dragHandleDiscovered }) => {
+      sendResponse(Boolean(dragHandleDiscovered));
+    });
+  return true;
+}
+
+if (message.type === "setDragHandleDiscovered") {
+  chrome.storage.local
+    .set({ dragHandleDiscovered: Boolean(message.value) })
+    .then(() => sendResponse(true));
+  return true;
+}
+
+if (message.type === "setFirstTimeNoticeAck") {
+  chrome.storage.local.set({ firstTimeNoticeAck: message.value }).then(() => {
+    sendResponse(true);
+  });
+  return true;
+}
+
+if (message.type === "getNotesById") {
+  chrome.storage.local.get("notesById").then(({ notesById }) => {
+    sendResponse(notesById || []);
+  });
+  return true;
+}
+
+if (message.type === "getAllNotes") {
+  chrome.storage.local.get("notesById").then(({ notesById }) => {
+    chrome.storage.local.get(notesById || []).then((notes) => {
+      sendResponse(Object.values(notes));
+    });
+  });
+  return true;
+}
+
+if (message.type === "getNote") {
+  chrome.storage.local.get(message.id).then((result) => {
+    sendResponse(result[message.id]);
+  });
+  return true;
+}
+
+if (message.type === "setNotesById") {
+  chrome.storage.local.set({ notesById: message.notesById }).then(() => {
+    sendResponse(true);
+  });
+  return true;
+}
+
+if (message.type === "setNote") {
+  // Persist note and ensure notesById includes the id (idempotent)
+  chrome.storage.local.get("notesById").then(({ notesById }) => {
+    const ids: string[] = Array.isArray(notesById) ? notesById : [];
+    const hasId = ids.includes(message.id);
+    const newIds = hasId ? ids : [...ids, message.id];
+
     chrome.storage.local
-      .get("dragHandleDiscovered")
-      .then(({ dragHandleDiscovered }) => {
-        sendResponse(Boolean(dragHandleDiscovered));
+      .set({
+        [message.id]: {
+          id: message.id,
+          pattern: message.pattern,
+          text: message.text,
+        },
+        notesById: newIds,
+      })
+      .then(() => {
+        sendResponse({ ok: true, id: message.id });
       });
-    return true;
-  }
+  });
+  return true;
+}
 
-  if (message.type === "setDragHandleDiscovered") {
-    chrome.storage.local
-      .set({ dragHandleDiscovered: Boolean(message.value) })
-      .then(() => sendResponse(true));
-    return true;
-  }
+if (message.type === "removeNote") {
+  // Remove note id from index and delete the note entry
+  chrome.storage.local.get("notesById").then(({ notesById }) => {
+    const ids: string[] = Array.isArray(notesById) ? notesById : [];
+    const newIds = ids.filter((id) => id !== message.id);
 
-  if (message.type === "setFirstTimeNoticeAck") {
-    chrome.storage.local.set({ firstTimeNoticeAck: message.value }).then(() => {
-      sendResponse(true);
-    });
-    return true;
-  }
-
-  if (message.type === "getNotesById") {
-    chrome.storage.local.get("notesById").then(({ notesById }) => {
-      sendResponse(notesById || []);
-    });
-    return true;
-  }
-
-  if (message.type === "getAllNotes") {
-    chrome.storage.local.get("notesById").then(({ notesById }) => {
-      chrome.storage.local.get(notesById || []).then((notes) => {
-        sendResponse(Object.values(notes));
+    chrome.storage.local.set({ notesById: newIds }).then(() => {
+      chrome.storage.local.remove(message.id).then(() => {
+        sendResponse(true);
       });
     });
-    return true;
-  }
+  });
+  return true;
+}
 
-  if (message.type === "getNote") {
-    chrome.storage.local.get(message.id).then((result) => {
-      sendResponse(result[message.id]);
-    });
-    return true;
-  }
-
-  if (message.type === "setNotesById") {
-    chrome.storage.local.set({ notesById: message.notesById }).then(() => {
-      sendResponse(true);
-    });
-    return true;
-  }
-
-  if (message.type === "setNote") {
-    // Persist note and ensure notesById includes the id (idempotent)
-    chrome.storage.local.get("notesById").then(({ notesById }) => {
-      const ids: string[] = Array.isArray(notesById) ? notesById : [];
-      const hasId = ids.includes(message.id);
-      const newIds = hasId ? ids : [...ids, message.id];
-
-      chrome.storage.local
-        .set({
-          [message.id]: {
-            id: message.id,
-            pattern: message.pattern,
-            text: message.text,
-          },
-          notesById: newIds,
-        })
-        .then(() => {
-          sendResponse({ ok: true, id: message.id });
-        });
-    });
-    return true;
-  }
-
-  if (message.type === "removeNote") {
-    // Remove note id from index and delete the note entry
-    chrome.storage.local.get("notesById").then(({ notesById }) => {
-      const ids: string[] = Array.isArray(notesById) ? notesById : [];
-      const newIds = ids.filter((id) => id !== message.id);
-
-      chrome.storage.local.set({ notesById: newIds }).then(() => {
-        chrome.storage.local.remove(message.id).then(() => {
-          sendResponse(true);
-        });
-      });
-    });
-    return true;
-  }
-
-  if (message.type === "getPosition") {
-    chrome.storage.local.get("urlState").then((result) => {
-      const urlState = result.urlState as
-        | Record<string, { position: unknown }>
-        | undefined;
+if (message.type === "getPosition") {
+  chrome.storage.local
+    .get("urlState")
+    .then(({ urlState }: { urlState?: UrlState }) => {
       const position = urlState?.[message.url]?.position;
       sendResponse(position);
     });
 
-    return true;
-  }
+  return true;
+}
 
-  if (message.type === "setPosition") {
-    chrome.storage.local.get("urlState").then((result) => {
-      const urlState = result.urlState as
-        | Record<string, { position: unknown }>
-        | undefined;
+if (message.type === "setPosition") {
+  chrome.storage.local
+    .get("urlState")
+    .then(({ urlState }: { urlState?: UrlState }) => {
       chrome.storage.local
         .set({
           urlState: {
@@ -254,14 +265,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
     });
 
-    return true;
-  }
+  return true;
+}
 
-  if (message.type === "removePosition") {
-    chrome.storage.local.get("urlState").then((result) => {
-      const urlState = result.urlState as
-        | Record<string, { position: unknown }>
-        | undefined;
+if (message.type === "removePosition") {
+  chrome.storage.local
+    .get("urlState")
+    .then(({ urlState }: { urlState?: UrlState }) => {
       const newUrlState = { ...urlState };
       delete newUrlState[message.url];
       chrome.storage.local
@@ -273,21 +283,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
     });
 
-    return true;
-  }
+  return true;
+}
 
-  if (message.type === "getPreviousVersion") {
-    chrome.storage.local.get("previousVersion").then(({ previousVersion }) => {
-      sendResponse(previousVersion || null);
-    });
-    return true;
-  }
+if (message.type === "getPreviousVersion") {
+  chrome.storage.local.get("previousVersion").then(({ previousVersion }) => {
+    sendResponse(previousVersion || null);
+  });
+  return true;
+}
 
-  if (message.type === "setPreviousVersion") {
-    const value = String(message.value ?? "");
-    chrome.storage.local
-      .set({ previousVersion: value })
-      .then(() => sendResponse(true));
-    return true;
-  }
-});
+if (message.type === "setPreviousVersion") {
+  const value = String(message.value ?? "");
+  chrome.storage.local
+    .set({ previousVersion: value })
+    .then(() => sendResponse(true));
+  return true;
+}
+})
