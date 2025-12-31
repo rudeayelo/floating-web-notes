@@ -28,30 +28,25 @@ chrome.runtime.onInstalled.addListener((details) => {
   }
 });
 
+type VisibilityState = { [key: number]: "visible" | "hidden" };
+
 // Open the Floating Web Notes window when the extension icon is clicked
 chrome.action.onClicked.addListener((activeTab) => {
-  chrome.storage.session
-    .get("visibility")
-    .then(
-      ({
-        visibility,
-      }: {
-        [key: string]: { [key: number]: "visible" | "hidden" } | undefined;
-      }) => {
-        if (visibility && activeTab.id && visibility[activeTab.id]) {
-          chrome.storage.session.set({
-            visibility: {
-              ...visibility,
-              [activeTab.id]:
-                visibility[activeTab.id] === "visible" ? "hidden" : "visible",
-            },
-          });
-        }
-        chrome.tabs.sendMessage(activeTab.id as number, {
-          type: "toggleActive",
-        });
-      },
-    );
+  chrome.storage.session.get("visibility").then((result) => {
+    const visibility = result.visibility as VisibilityState | undefined;
+    if (visibility && activeTab.id && visibility[activeTab.id]) {
+      chrome.storage.session.set({
+        visibility: {
+          ...visibility,
+          [activeTab.id]:
+            visibility[activeTab.id] === "visible" ? "hidden" : "visible",
+        },
+      });
+    }
+    chrome.tabs.sendMessage(activeTab.id as number, {
+      type: "toggleActive",
+    });
+  });
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -79,40 +74,26 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "getVisibility") {
-    chrome.storage.session
-      .get("visibility")
-      .then(
-        ({
-          visibility,
-        }: {
-          [key: string]: { [key: number]: "visible" | "hidden" } | undefined;
-        }) => {
-          sendResponse(
-            visibility && sender.tab?.id && visibility[sender.tab?.id],
-          );
-        },
+    chrome.storage.session.get("visibility").then((result) => {
+      const visibility = result.visibility as VisibilityState | undefined;
+      sendResponse(
+        visibility && sender.tab?.id && visibility[sender.tab?.id],
       );
+    });
     return true;
   }
 
   if (message.type === "setVisibility") {
-    chrome.storage.session
-      .get("visibility")
-      .then(
-        ({
-          visibility,
-        }: {
-          [key: string]: { [key: number]: "visible" | "hidden" } | undefined;
-        }) => {
-          if (!sender.tab?.id) return;
-          const next = visibility
-            ? { ...visibility, [sender.tab.id]: message.value }
-            : { [sender.tab.id]: message.value };
-          chrome.storage.session
-            .set({ visibility: next })
-            .then(() => sendResponse(true));
-        },
-      );
+    chrome.storage.session.get("visibility").then((result) => {
+      const visibility = result.visibility as VisibilityState | undefined;
+      if (!sender.tab?.id) return;
+      const next = visibility
+        ? { ...visibility, [sender.tab.id]: message.value }
+        : { [sender.tab.id]: message.value };
+      chrome.storage.session
+        .set({ visibility: next })
+        .then(() => sendResponse(true));
+    });
     return true;
   }
 
@@ -145,13 +126,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "getFirstTimeNoticeAck") {
-    chrome.storage.local
-      .get("firstTimeNoticeAck")
-      .then(
-        ({ firstTimeNoticeAck }: { [key: string]: boolean | undefined }) => {
-          sendResponse(firstTimeNoticeAck || false);
-        },
-      );
+    chrome.storage.local.get("firstTimeNoticeAck").then((result) => {
+      const firstTimeNoticeAck = result.firstTimeNoticeAck as boolean | undefined;
+      sendResponse(firstTimeNoticeAck || false);
+    });
     return true;
   }
 
@@ -248,7 +226,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "getPosition") {
-    chrome.storage.local.get("urlState").then(({ urlState }) => {
+    chrome.storage.local.get("urlState").then((result) => {
+      const urlState = result.urlState as
+        | Record<string, { position: unknown }>
+        | undefined;
       const position = urlState?.[message.url]?.position;
       sendResponse(position);
     });
@@ -257,7 +238,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "setPosition") {
-    chrome.storage.local.get("urlState").then(({ urlState }) => {
+    chrome.storage.local.get("urlState").then((result) => {
+      const urlState = result.urlState as
+        | Record<string, { position: unknown }>
+        | undefined;
       chrome.storage.local
         .set({
           urlState: {
@@ -274,7 +258,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "removePosition") {
-    chrome.storage.local.get("urlState").then(({ urlState }) => {
+    chrome.storage.local.get("urlState").then((result) => {
+      const urlState = result.urlState as
+        | Record<string, { position: unknown }>
+        | undefined;
       const newUrlState = { ...urlState };
       delete newUrlState[message.url];
       chrome.storage.local
