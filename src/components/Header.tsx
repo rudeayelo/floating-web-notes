@@ -27,7 +27,6 @@ export const Header = () => {
       </div>
 
       <Tooltip.Root
-        delay={dragHandleDiscovered ? 3000 : 1000}
         onOpenChange={(open) => {
           if (open && !dragHandleDiscovered) {
             // Mark as discovered the first time the tooltip opens
@@ -35,7 +34,10 @@ export const Header = () => {
           }
         }}
       >
-        <Tooltip.Trigger render={<div className="HeaderHandle" />} />
+        <Tooltip.Trigger
+          delay={dragHandleDiscovered ? 3000 : 1000}
+          render={<div className="HeaderHandle" />}
+        />
         <Tooltip.Portal container={rootRef}>
           <Tooltip.Positioner sideOffset={4}>
             <Tooltip.Popup className="TooltipContent">
@@ -50,8 +52,9 @@ export const Header = () => {
 
       <div className="HeaderEnd">
         {hasCustomPosition && (
-          <Tooltip.Root delay={0}>
+          <Tooltip.Root>
             <Tooltip.Trigger
+              delay={0}
               render={
                 <IconButton
                   icon="pin"

@@ -69,8 +69,9 @@ export const NoteFooter = ({ id, pattern }: NoteFooterProps) => {
                     defaultValue={URLPattern}
                     onChange={(evt) => handleURLPatternChange(evt.target.value)}
                   />
-                  <Tooltip.Root delay={0}>
+                  <Tooltip.Root>
                     <Tooltip.Trigger
+                      delay={0}
                       render={
                         <div className="TooltipTriggerIcon">{icons.info}</div>
                       }
@@ -125,8 +126,9 @@ export const NoteFooter = ({ id, pattern }: NoteFooterProps) => {
           </Popover.Positioner>
         </Popover.Portal>
       </Popover.Root>
-      <Tooltip.Root delay={0}>
+      <Tooltip.Root>
         <Tooltip.Trigger
+          delay={0}
           render={
             <IconButton
               icon="remove"
