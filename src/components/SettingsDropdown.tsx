@@ -1,4 +1,4 @@
-import { Menu } from "@base-ui-components/react/menu";
+import { Menu } from "@base-ui/react/menu";
 import { useNotesStore, useSettingsStore, useUIStore } from "../store";
 import type { OpenOptions, ThemeOptions } from "../types";
 import { useEnv } from "../utils/hooks";

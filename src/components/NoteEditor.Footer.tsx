@@ -1,5 +1,5 @@
-import { Popover } from "@base-ui-components/react/popover";
-import { Tooltip } from "@base-ui-components/react/tooltip";
+import { Popover } from "@base-ui/react/popover";
+import { Tooltip } from "@base-ui/react/tooltip";
 import { useCallback, useState } from "react";
 import { useNotesStore, useUIStore } from "../store";
 import { urlMatchesPattern } from "../utils/urls";

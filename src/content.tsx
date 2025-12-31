@@ -1,5 +1,5 @@
 import "./font-face.css";
-import { Tooltip } from "@base-ui-components/react/tooltip";
+import { Tooltip } from "@base-ui/react/tooltip";
 import { useState } from "react";
 import TurndownService from "turndown";
 import { App } from "./App";
