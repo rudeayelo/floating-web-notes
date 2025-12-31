@@ -18,7 +18,7 @@
     "release": "mkdir releases/floating-web-notes-$(node -p \"require('./package.json').version\") && cd dist && zip -r \"../releases/floating-web-notes-$(node -p \"require('./manifest.json').version_name\")/floating-web-notes-$(node -p \"require('./manifest.json').version_name\").zip\" * && cd .. && git add . && git commit --amend --no-edit"
   },
   "dependencies": {
-    "@base-ui-components/react": "1.0.0-rc.0",
+    "@base-ui/react": "1.0.0",
     "@doist/typist": "9.0.0",
     "nanoid": "5.1.6",
     "react": "19.2.3",

@@ -1,4 +1,4 @@
-import { Tooltip } from "@base-ui-components/react/tooltip";
+import { Tooltip } from "@base-ui/react/tooltip";
 import { useUIStore } from "../store";
 import { IconButton } from "./IconButton";
 import { icons } from "./icons";
