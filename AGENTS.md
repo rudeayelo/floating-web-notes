@@ -1,5 +1,9 @@
 # Agent Instructions
 
+## Project Guidance
+
+Use `ARCHITECTURE.md` for the canonical codebase structure and implementation guidance.
+
 ## Creating a Release
 
 The user will ask to create a patch, minor, or major release.
