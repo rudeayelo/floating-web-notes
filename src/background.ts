@@ -1,5 +1,9 @@
 import type { UrlState, Visibility } from "./types";
 
+const isMissingMessageReceiverError = (error: unknown) =>
+  error instanceof Error &&
+  error.message.includes("Receiving end does not exist");
+
 const checkHotkeyConflict = (cb?: (arg0: boolean) => unknown) => {
   chrome.commands.getAll((commands) => {
     let hotkeyConflict = false;
@@ -32,21 +36,29 @@ chrome.runtime.onInstalled.addListener((details) => {
 
 // Open the Floating Web Notes window when the extension icon is clicked
 chrome.action.onClicked.addListener((activeTab) => {
+  const tabId = activeTab.id;
+  if (!tabId) return;
+
   chrome.storage.session
     .get("visibility")
     .then(({ visibility }: { visibility?: Visibility }) => {
-      if (visibility && activeTab.id && visibility[activeTab.id]) {
+      if (visibility && visibility[tabId]) {
         chrome.storage.session.set({
           visibility: {
             ...visibility,
-            [activeTab.id]:
-              visibility[activeTab.id] === "visible" ? "hidden" : "visible",
+            [tabId]: visibility[tabId] === "visible" ? "hidden" : "visible",
           },
         });
       }
-      chrome.tabs.sendMessage(activeTab.id as number, {
-        type: "toggleActive",
-      });
+      chrome.tabs
+        .sendMessage(tabId, {
+          type: "toggleActive",
+        })
+        .catch((error: unknown) => {
+          if (!isMissingMessageReceiverError(error)) {
+            console.error(error);
+          }
+        });
     });
 });
 
