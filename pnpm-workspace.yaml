@@ -1,3 +1,5 @@
+minimumReleaseAgeExclude:
+  - react-hotkeys-hook@5.3.3
 onlyBuiltDependencies:
   - puppeteer
   - unrs-resolver
