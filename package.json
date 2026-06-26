@@ -40,9 +40,9 @@
         "@types/react-dom": "19.2.3",
         "@types/sanitize-html": "2.16.1",
         "@types/turndown": "5.0.6",
-        "@vitejs/plugin-react": "5.2.0",
+        "@vitejs/plugin-react": "6.0.3",
         "concurrently": "9.2.3",
-        "typescript": "5.9.3",
-        "vite": "7.3.6"
+        "typescript": "6.0.3",
+        "vite": "8.1.0"
     }
 }
