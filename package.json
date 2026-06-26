@@ -35,13 +35,13 @@
         "@crxjs/vite-plugin": "2.7.0",
         "@playwright/test": "1.61.1",
         "@types/chrome": "0.2.0",
-        "@types/node": "25.9.4",
+        "@types/node": "26.0.1",
         "@types/react": "19.2.17",
         "@types/react-dom": "19.2.3",
         "@types/sanitize-html": "2.16.1",
         "@types/turndown": "5.0.6",
         "@vitejs/plugin-react": "6.0.3",
-        "concurrently": "9.2.3",
+        "concurrently": "10.0.3",
         "typescript": "6.0.3",
         "vite": "8.1.0"
     }
