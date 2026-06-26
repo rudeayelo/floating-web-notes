@@ -30,8 +30,6 @@ chrome.runtime.onInstalled.addListener((details) => {
   }
 });
 
-type VisibilityState = { [key: number]: "visible" | "hidden" };
-
 // Open the Floating Web Notes window when the extension icon is clicked
 chrome.action.onClicked.addListener((activeTab) => {
   chrome.storage.session
@@ -90,7 +88,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           );
         },
       );
-    });
     return true;
   }
 
