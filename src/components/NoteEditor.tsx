@@ -1,5 +1,6 @@
 import { RichTextKit, TypistEditor } from "@doist/typist";
 import type { ComponentProps } from "react";
+import { useEffect, useRef } from "react";
 import { useDebouncedCallback } from "use-debounce";
 import { useNotesStore } from "../store";
 import type { Note } from "../types";
@@ -16,6 +17,7 @@ export const NoteEditor = ({
   ...props
 }: NoteProps) => {
   const setNote = useNotesStore((state) => state.setNote);
+  const noteRef = useRef<HTMLDivElement>(null);
 
   const handleInput = useDebouncedCallback(
     async (text) => await setNote({ id, pattern, text }),
@@ -23,8 +25,32 @@ export const NoteEditor = ({
     { maxWait: 1000 },
   );
 
+  useEffect(() => {
+    const editor = noteRef.current?.querySelector("[data-typist-editor]");
+    if (!editor) return;
+
+    const stopKeyboardPropagation = (event: Event) => {
+      event.stopPropagation();
+    };
+    const keyboardEvents = ["keydown", "keypress", "keyup"];
+
+    for (const eventName of keyboardEvents) {
+      editor.addEventListener(eventName, stopKeyboardPropagation, {
+        capture: true,
+      });
+    }
+
+    return () => {
+      for (const eventName of keyboardEvents) {
+        editor.removeEventListener(eventName, stopKeyboardPropagation, {
+          capture: true,
+        });
+      }
+    };
+  }, []);
+
   return (
-    <div className="Note" data-note-id={id} {...props}>
+    <div className="Note" data-note-id={id} ref={noteRef} {...props}>
       <TypistEditor
         className="NoteEditor"
         content={text}

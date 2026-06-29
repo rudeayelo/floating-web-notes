@@ -35,7 +35,8 @@ const installScrollablePageFixture = async (page: Page) => {
 
     const fixture = document.createElement("main");
     fixture.className = "fwn-scroll-fixture";
-    fixture.innerHTML = '<section class="fwn-scroll-fixture__target"></section>';
+    fixture.innerHTML =
+      '<section class="fwn-scroll-fixture__target"></section>';
     document.body.prepend(fixture);
   });
 };
@@ -220,6 +221,33 @@ test.describe("when a note exists for the current page", () => {
     await expect(noteEditor).toContainText(text);
   });
 
+  test("editor keystrokes do not reach host page keyboard listeners", async ({
+    page,
+  }) => {
+    await page.evaluate(() => {
+      const keyEvents: string[] = [];
+      Object.assign(window, { __fwnKeyEvents: keyEvents });
+
+      for (const eventName of ["keydown", "keypress", "keyup"]) {
+        document.addEventListener(eventName, (event) => {
+          keyEvents.push(`${eventName}:${(event as KeyboardEvent).key}`);
+        });
+      }
+    });
+
+    const noteEditor = page.locator(
+      "floating-web-notes .NoteEditor > [data-typist-editor='true']",
+    );
+    await noteEditor.click();
+    await page.keyboard.type("g");
+
+    await expect(noteEditor).toContainText("g");
+    const hostPageKeyEvents = await page.evaluate(
+      () => (window as unknown as { __fwnKeyEvents: string[] }).__fwnKeyEvents,
+    );
+    expect(hostPageKeyEvents).toEqual([]);
+  });
+
   test("it can be removed", async ({ page }) => {
     await page.locator("floating-web-notes .RemoveNoteButton").click();
 
@@ -402,6 +430,41 @@ test.describe('when the "Open by default" setting is set to...', () => {
   });
 });
 
+test.describe("theme setting", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(HOST_URL);
+  });
+
+  test("applies and persists dark mode", async ({ page, context }) => {
+    await page.locator("floating-web-notes #Settings").click();
+    await page.locator("floating-web-notes #theme-option-dark").click();
+
+    const root = page.locator("floating-web-notes #root");
+    await expect(root).toHaveAttribute("data-theme-setting", "dark");
+    await expect(root).toHaveAttribute("data-theme", "dark");
+
+    const newPage = await context.newPage();
+    await newPage.goto(HOST_URL);
+
+    const persistedRoot = newPage.locator("floating-web-notes #root");
+    await expect(persistedRoot).toHaveAttribute("data-theme-setting", "dark");
+    await expect(persistedRoot).toHaveAttribute("data-theme", "dark");
+  });
+
+  test("resolves system mode from the browser color scheme", async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: "dark" });
+
+    await page.locator("floating-web-notes #Settings").click();
+    await page.locator("floating-web-notes #theme-option-system").click();
+
+    const root = page.locator("floating-web-notes #root");
+    await expect(root).toHaveAttribute("data-theme-setting", "system");
+    await expect(root).toHaveAttribute("data-theme", "dark");
+  });
+});
+
 test.describe("panel repositioning", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(HOST_URL);
@@ -472,6 +535,14 @@ test.describe("panel repositioning", () => {
       "floating-web-notes #RestorePositionButton",
     );
     await expect(restoreBtn).toBeVisible();
+
+    await restoreBtn.hover();
+    const restoreTooltip = page
+      .locator("floating-web-notes .TooltipContent")
+      .filter({ hasText: "Restore position" });
+    await expect(restoreTooltip).toBeVisible();
+    await page.waitForTimeout(500);
+    await expect(restoreTooltip).toBeVisible();
 
     // Capture current position and then restore
     const dragged = await container.boundingBox();

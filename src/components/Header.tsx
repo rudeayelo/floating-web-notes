@@ -1,4 +1,5 @@
 import { Tooltip } from "@base-ui/react/tooltip";
+import { useState } from "react";
 import { useUIStore } from "../store";
 import { IconButton } from "./IconButton";
 import { icons } from "./icons";
@@ -15,6 +16,12 @@ export const Header = () => {
     (state) => state.markDragHandleDiscovered,
   );
   const rootRef = useUIStore((state) => state.rootRef);
+  const [restorePositionTooltipOpen, setRestorePositionTooltipOpen] =
+    useState(false);
+
+  const closeRestorePositionTooltip = () => {
+    setRestorePositionTooltipOpen(false);
+  };
 
   return (
     <div className="Header">
@@ -52,13 +59,27 @@ export const Header = () => {
 
       <div className="HeaderEnd">
         {hasCustomPosition && (
-          <Tooltip.Root>
+          <Tooltip.Root
+            open={restorePositionTooltipOpen}
+            onOpenChange={(open) => {
+              if (open) {
+                setRestorePositionTooltipOpen(true);
+              }
+            }}
+          >
             <Tooltip.Trigger
               delay={0}
               render={
                 <IconButton
                   icon="pin"
-                  onClick={() => restorePosition(window.location.href)}
+                  onMouseEnter={() => setRestorePositionTooltipOpen(true)}
+                  onMouseLeave={closeRestorePositionTooltip}
+                  onFocus={() => setRestorePositionTooltipOpen(true)}
+                  onBlur={closeRestorePositionTooltip}
+                  onClick={() => {
+                    closeRestorePositionTooltip();
+                    restorePosition(window.location.href);
+                  }}
                   id="RestorePositionButton"
                 />
               }

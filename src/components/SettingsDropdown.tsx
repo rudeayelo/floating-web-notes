@@ -73,50 +73,49 @@ export const SettingsDropdown = () => {
 
             <Menu.Separator className="DropdownMenuSeparator" />
 
-            {isDevEnv ? (
-              <>
-                <Menu.Group>
-                  <Menu.GroupLabel className="DropdownMenuLabel">
-                    Theme
-                  </Menu.GroupLabel>
+            <Menu.Group>
+              <Menu.GroupLabel className="DropdownMenuLabel">
+                Theme
+              </Menu.GroupLabel>
 
-                  <Menu.RadioGroup
-                    value={theme}
-                    onValueChange={(theme) => setTheme(theme as ThemeOptions)}
-                  >
-                    <Menu.RadioItem
-                      className="DropdownMenuRadioItem"
-                      value="light"
-                    >
-                      <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
-                        {icons.check}
-                      </Menu.RadioItemIndicator>
-                      Light
-                    </Menu.RadioItem>
-                    <Menu.RadioItem
-                      className="DropdownMenuRadioItem"
-                      value="dark"
-                    >
-                      <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
-                        {icons.check}
-                      </Menu.RadioItemIndicator>
-                      Dark
-                    </Menu.RadioItem>
-                    <Menu.RadioItem
-                      className="DropdownMenuRadioItem"
-                      value="system"
-                    >
-                      <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
-                        {icons.check}
-                      </Menu.RadioItemIndicator>
-                      System
-                    </Menu.RadioItem>
-                  </Menu.RadioGroup>
-                </Menu.Group>
+              <Menu.RadioGroup
+                value={theme}
+                onValueChange={(theme) => setTheme(theme as ThemeOptions)}
+              >
+                <Menu.RadioItem
+                  className="DropdownMenuRadioItem"
+                  id="theme-option-light"
+                  value="light"
+                >
+                  <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
+                    {icons.check}
+                  </Menu.RadioItemIndicator>
+                  Light
+                </Menu.RadioItem>
+                <Menu.RadioItem
+                  className="DropdownMenuRadioItem"
+                  id="theme-option-dark"
+                  value="dark"
+                >
+                  <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
+                    {icons.check}
+                  </Menu.RadioItemIndicator>
+                  Dark
+                </Menu.RadioItem>
+                <Menu.RadioItem
+                  className="DropdownMenuRadioItem"
+                  id="theme-option-system"
+                  value="system"
+                >
+                  <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
+                    {icons.check}
+                  </Menu.RadioItemIndicator>
+                  System
+                </Menu.RadioItem>
+              </Menu.RadioGroup>
+            </Menu.Group>
 
-                <Menu.Separator className="DropdownMenuSeparator" />
-              </>
-            ) : null}
+            <Menu.Separator className="DropdownMenuSeparator" />
 
             <Menu.Item
               className="DropdownMenuItem"

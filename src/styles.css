@@ -136,6 +136,28 @@ h6 {
   --color-text-link: var(--blue-11);
   --color-text-error: var(--red-11);
   --color-text-danger: var(--red-11);
+  --kbd-bg: #fcfcfd;
+  --kbd-border: #e0e1e6;
+  --kbd-border-bottom: #cdced6;
+  --kbd-shadow: #b9bbc6;
+  --kbd-color: #60646c;
+  --tooltip-color: #582d1d;
+  --tooltip-bg-start: #ffefd6;
+  --tooltip-bg-end: #fff7ed;
+  --tooltip-arrow-fill: #fff7ed;
+  --tooltip-danger-soft-color: #d13415;
+  --tooltip-danger-soft-bg-start: #feebe7;
+  --tooltip-danger-soft-bg-end: #fffcfc;
+  --tooltip-danger-soft-border: #ffdcd3;
+  --tooltip-danger-soft-border-strong: #fff8f7;
+  --tooltip-danger-soft-arrow-fill: #fffcfc;
+  --tooltip-danger-color: #fcfcfd;
+  --tooltip-danger-bg-start: #d13415;
+  --tooltip-danger-bg-end: #e54d2e;
+  --tooltip-danger-text-shadow: #d13415;
+  --tooltip-danger-arrow-fill: #e54d2e;
+  --danger-button-hover-bg: #d13415;
+  --danger-button-hover-color: #fffcfc;
 
   /* Depth/Shadow */
   --shadow-depth-1:
@@ -172,6 +194,115 @@ h6 {
   -webkit-font-smoothing: antialiased;
 }
 
+#root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --gray-1: #111113;
+  --gray-2: #18191b;
+  --gray-3: #212225;
+  --gray-4: #272a2d;
+  --gray-5: #2e3135;
+  --gray-6: #363a3f;
+  --gray-7: #43484e;
+  --gray-8: #5a6169;
+  --gray-9: #696e77;
+  --gray-10: #777b84;
+  --gray-11: #b0b4ba;
+  --gray-12: #edeef0;
+
+  --gray-a1: rgba(255 255 255 / 0.03);
+  --gray-a2: rgba(255 255 255 / 0.06);
+  --gray-a3: rgba(255 255 255 / 0.09);
+  --gray-a4: rgba(255 255 255 / 0.12);
+  --gray-a5: rgba(255 255 255 / 0.15);
+  --gray-a6: rgba(255 255 255 / 0.19);
+  --gray-a7: rgba(255 255 255 / 0.24);
+  --gray-a8: rgba(255 255 255 / 0.35);
+  --gray-a9: rgba(255 255 255 / 0.42);
+  --gray-a10: rgba(255 255 255 / 0.48);
+  --gray-a11: rgba(255 255 255 / 0.72);
+  --gray-a12: rgba(255 255 255 / 0.92);
+
+  --blue-1: #0d1520;
+  --blue-2: #111927;
+  --blue-3: #0d2847;
+  --blue-4: #003362;
+  --blue-5: #004074;
+  --blue-6: #104d87;
+  --blue-7: #205d9e;
+  --blue-8: #2870bd;
+  --blue-9: #0090ff;
+  --blue-10: #3b9eff;
+  --blue-11: #70b8ff;
+  --blue-12: #c2e6ff;
+
+  --red-1: #191111;
+  --red-2: #201314;
+  --red-3: #3b1219;
+  --red-4: #500f1c;
+  --red-5: #611623;
+  --red-6: #72232d;
+  --red-7: #8c333a;
+  --red-8: #b54548;
+  --red-9: #e5484d;
+  --red-10: #ec5d5e;
+  --red-11: #ff9592;
+  --red-12: #ffd1d9;
+
+  --orange-1: #17120e;
+  --orange-2: #1e160f;
+  --orange-3: #331e0b;
+  --orange-4: #462100;
+  --orange-5: #562800;
+  --orange-6: #66350c;
+  --orange-7: #7e451d;
+  --orange-8: #a35829;
+  --orange-9: #f76b15;
+  --orange-10: #ff801f;
+  --orange-11: #ffa057;
+  --orange-12: #ffe0c2;
+
+  --orange-a1: rgba(255 160 87 / 0.04);
+  --orange-a2: rgba(255 160 87 / 0.07);
+  --orange-a3: rgba(255 138 37 / 0.17);
+  --orange-a4: rgba(255 117 22 / 0.25);
+  --orange-a5: rgba(255 126 25 / 0.31);
+  --orange-a6: rgba(255 145 50 / 0.38);
+  --orange-a7: rgba(255 157 73 / 0.49);
+  --orange-a8: rgba(255 150 69 / 0.64);
+  --orange-a9: rgba(255 128 31 / 0.96);
+  --orange-a10: rgba(255 139 46 / 0.99);
+  --orange-a11: rgba(255 178 111 / 0.99);
+  --orange-a12: rgba(255 224 194 / 0.99);
+
+  --color-container-bg: rgba(18 20 24 / 0.9);
+  --color-text-primary: var(--gray-12);
+  --color-text-secondary: var(--gray-11);
+  --color-text-link: var(--blue-11);
+  --color-text-error: var(--red-11);
+  --color-text-danger: var(--red-11);
+
+  --shadow-depth-1:
+    0px 2px 1px rgba(0 0 0 / 0.08),
+    0px 4px 2px rgba(0 0 0 / 0.12), 0px 0px 4px rgba(0 0 0 / 0.2),
+    0px 2px 3px rgba(0 0 0 / 0.26), 0px 4px 15px rgba(0 0 0 / 0.32);
+  --shadow-depth-2:
+    0px 0px 1px rgba(255 255 255 / 0.12),
+    0px 6px 1.6px rgba(0 0 0 / 0.14),
+    0px 8px 4px rgba(0 0 0 / 0.18), 0px 0px 8px rgba(0 0 0 / 0.24),
+    0px 4px 6px rgba(0 0 0 / 0.3), 0px 9px 30px rgba(0 0 0 / 0.42);
+  --shadow-depth-3:
+    inset 0px 300px 300px 0px rgba(255 255 255 / 0.04),
+    inset 0 0 0 1px rgba(255 255 255 / 0.08),
+    inset 0px -1px 1px rgba(0 0 0 / 0.5),
+    0px 0px 1px rgba(255 255 255 / 0.14),
+    0px 8.3px 1.6px rgba(0 0 0 / 0.14),
+    0px 10.1px 4.2px rgba(0 0 0 / 0.2),
+    0px 11.1px 8.5px rgba(0 0 0 / 0.25),
+    0px 11.7px 17.5px rgba(0 0 0 / 0.32),
+    0px 12px 48px rgba(0 0 0 / 0.48);
+}
+
 #root {
   position: absolute;
   top: 0;
@@ -204,7 +335,6 @@ h6 {
   &.react-draggable-dragging {
     user-select: none !important;
   }
-
 }
 
 .Page {
@@ -216,12 +346,12 @@ h6 {
 }
 
 kbd {
-  background-color: var(--gray-1);
-  border: 1px solid var(--gray-5);
-  border-bottom-color: var(--gray-7);
+  background-color: var(--kbd-bg);
+  border: 1px solid var(--kbd-border);
+  border-bottom-color: var(--kbd-border-bottom);
   border-radius: 2px;
-  box-shadow: inset 0 -1px 0 var(--gray-8);
-  color: var(--gray-11);
+  box-shadow: inset 0 -1px 0 var(--kbd-shadow);
+  color: var(--kbd-color);
   display: inline-block;
   font-size: 11px;
   line-height: 10px;
@@ -337,8 +467,8 @@ em {
     /* color: var(--color-text-danger); */
 
     &:hover {
-      background: var(--red-11);
-      color: var(--red-1);
+      background: var(--danger-button-hover-bg);
+      color: var(--danger-button-hover-color);
     }
   }
 
@@ -374,8 +504,12 @@ em {
   font-size: 11px;
   font-weight: 400;
   line-height: 1.2;
-  color: var(--orange-12);
-  background: linear-gradient(180deg, var(--orange-3), var(--orange-2));
+  color: var(--tooltip-color);
+  background: linear-gradient(
+    180deg,
+    var(--tooltip-bg-start),
+    var(--tooltip-bg-end)
+  );
   box-shadow: var(--shadow-depth-1);
   user-select: none;
   animation-duration: 0.2s;
@@ -384,18 +518,22 @@ em {
   will-change: transform, opacity;
 
   &[data-variant="danger"] {
-    color: var(--color-text-danger);
+    color: var(--tooltip-danger-soft-color);
     font-weight: 500;
-    background: linear-gradient(180deg, var(--red-3), var(--red-1));
+    background: linear-gradient(
+      180deg,
+      var(--tooltip-danger-soft-bg-start),
+      var(--tooltip-danger-soft-bg-end)
+    );
     box-shadow:
       var(--shadow-depth-1),
-      inset 0 1px 0 var(--red-4),
-      inset 1px 0 var(--red-4),
-      inset -1px 0 0 var(--red-4),
-      inset 0 0 0 2px var(--red-2);
+      inset 0 1px 0 var(--tooltip-danger-soft-border),
+      inset 1px 0 var(--tooltip-danger-soft-border),
+      inset -1px 0 0 var(--tooltip-danger-soft-border),
+      inset 0 0 0 2px var(--tooltip-danger-soft-border-strong);
 
     & .TooltipArrow > svg {
-      fill: var(--red-1);
+      fill: var(--tooltip-danger-soft-arrow-fill);
     }
   }
 
@@ -422,7 +560,7 @@ em {
   }
 
   & .TooltipArrow > svg {
-    fill: var(--orange-2);
+    fill: var(--tooltip-arrow-fill);
   }
 
   .TooltipTriggerIcon {
@@ -433,13 +571,17 @@ em {
   }
 
   &[data-variant="danger"] {
-    color: var(--gray-1);
-    background: linear-gradient(180deg, var(--red-11), var(--red-9));
+    color: var(--tooltip-danger-color);
+    background: linear-gradient(
+      180deg,
+      var(--tooltip-danger-bg-start),
+      var(--tooltip-danger-bg-end)
+    );
     box-shadow: var(--shadow-depth-1);
-    text-shadow: 0 1px 0 var(--red-11);
+    text-shadow: 0 1px 0 var(--tooltip-danger-text-shadow);
 
     & .TooltipArrow > svg {
-      fill: var(--red-9);
+      fill: var(--tooltip-danger-arrow-fill);
     }
   }
 }
