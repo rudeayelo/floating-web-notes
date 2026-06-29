@@ -1,6 +1,9 @@
 import type {
   Command,
   Note,
+  NotesExport,
+  NotesImportMode,
+  NotesImportResponse,
   OpenOptions,
   Position,
   ThemeOptions,
@@ -42,6 +45,9 @@ export const Api = {
     allNotes: (): Promise<Note[]> => {
       return sendMessage({ type: "getAllNotes" });
     },
+    notesExport: (): Promise<NotesExport> => {
+      return sendMessage({ type: "exportNotes" });
+    },
     note: (id: string): Promise<Note> => {
       return sendMessage({ type: "getNote", id });
     },
@@ -73,6 +79,12 @@ export const Api = {
     },
     note: ({ id, pattern, text }: Note) => {
       return sendMessage({ type: "setNote", id, pattern, text });
+    },
+    notesImport: (
+      exportData: unknown,
+      mode: NotesImportMode,
+    ): Promise<NotesImportResponse> => {
+      return sendMessage({ type: "importNotes", exportData, mode });
     },
     position: (url: string, position: Position) => {
       return sendMessage({ type: "setPosition", url, position });

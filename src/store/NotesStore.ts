@@ -1,6 +1,11 @@
 import { create } from "zustand";
 import { Api } from "../api";
-import type { Note } from "../types";
+import type {
+  Note,
+  NotesExport,
+  NotesImportMode,
+  NotesImportResult,
+} from "../types";
 import { getCurrentWebNotes } from "../utils/getCurrentWebNotes";
 
 type NotesState = {
@@ -9,6 +14,11 @@ type NotesState = {
   setNote: (note: Note) => void;
   getNote: (id: string) => Promise<Note>;
   removeNote: (id: string) => Promise<void>;
+  exportNotes: () => Promise<NotesExport>;
+  importNotes: (
+    exportData: unknown,
+    mode: NotesImportMode,
+  ) => Promise<NotesImportResult>;
   updateNotes: () => Promise<void>;
   notesKey: number | null;
   forceNotesUpdate: () => void;
@@ -48,6 +58,20 @@ export const useNotesStore = create<NotesState>((set) => ({
       notes: state.notes.filter((n) => n.id !== id),
       notesById: latestIds,
     }));
+  },
+  exportNotes: async () => {
+    return Api.get.notesExport();
+  },
+  importNotes: async (exportData: unknown, mode: NotesImportMode) => {
+    const response = await Api.set.notesImport(exportData, mode);
+    if (!response.ok) {
+      throw new Error(response.error);
+    }
+
+    const currentNotes = await getCurrentWebNotes();
+    set({ notes: currentNotes, notesKey: Date.now() });
+
+    return response.result;
   },
   notesKey: null,
   forceNotesUpdate: () => {

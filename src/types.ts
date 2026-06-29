@@ -9,6 +9,25 @@ export type Note = {
   pattern: string;
 };
 
+export type NotesExport = {
+  app: "floating-web-notes";
+  schemaVersion: 1;
+  exportedAt: string;
+  notes: Note[];
+};
+
+export type NotesImportMode = "merge" | "replace";
+
+export type NotesImportResult = {
+  imported: number;
+  skipped: number;
+  mode: NotesImportMode;
+};
+
+export type NotesImportResponse =
+  | { ok: true; result: NotesImportResult }
+  | { ok: false; error: string };
+
 export type OpenOptions = "always" | "never" | "with-notes";
 export type ThemeOptions = "light" | "dark" | "system";
 
