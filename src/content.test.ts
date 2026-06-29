@@ -1,6 +1,95 @@
+import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "./playwright.fixtures";
 
 const HOST_URL = "http://localhost:6006";
+
+const installScrollablePageFixture = async (page: Page) => {
+  await page.addStyleTag({
+    content: `
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        overflow-y: auto;
+      }
+
+      .fwn-scroll-fixture {
+        box-sizing: border-box;
+        min-height: 2800px;
+        padding: 32px;
+        background: linear-gradient(#f7f2e8, #d9eef0);
+      }
+
+      .fwn-scroll-fixture__target {
+        margin-top: 1500px;
+        height: 360px;
+        border: 4px solid #2563eb;
+      }
+    `,
+  });
+
+  await page.evaluate(() => {
+    if (document.querySelector(".fwn-scroll-fixture")) return;
+
+    const fixture = document.createElement("main");
+    fixture.className = "fwn-scroll-fixture";
+    fixture.innerHTML = '<section class="fwn-scroll-fixture__target"></section>';
+    document.body.prepend(fixture);
+  });
+};
+
+const dragHandleToPanelTop = async ({
+  page,
+  container,
+  handle,
+  top,
+  left,
+}: {
+  page: Page;
+  container: Locator;
+  handle: Locator;
+  top: number;
+  left: number;
+}) => {
+  const containerBox = await container.boundingBox();
+  if (!containerBox) throw new Error("Container bounding box not found");
+
+  const handleBox = await handle.boundingBox();
+  if (!handleBox) throw new Error("Header handle bounding box not found");
+
+  const handleOffsetX = handleBox.x + handleBox.width / 2 - containerBox.x;
+  const handleOffsetY = handleBox.y + handleBox.height / 2 - containerBox.y;
+
+  await handle.hover();
+  await page.mouse.down();
+  await page.mouse.move(left + handleOffsetX, top + handleOffsetY, {
+    steps: 12,
+  });
+  await page.mouse.up();
+};
+
+const togglePanelFromExtension = async (page: Page) => {
+  const context = page.context();
+  let [serviceWorker] = context.serviceWorkers();
+  if (!serviceWorker) {
+    serviceWorker = await context.waitForEvent("serviceworker");
+  }
+
+  await serviceWorker.evaluate(async () => {
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+
+    if (!tab?.id) {
+      throw new Error("Active tab not found");
+    }
+
+    await chrome.tabs.sendMessage(tab.id, { type: "toggleActive" });
+  });
+};
 
 test("the main window renders successfully", async ({ page }) => {
   await page.goto(HOST_URL);
@@ -390,8 +479,11 @@ test.describe("panel repositioning", () => {
       throw new Error("Container bounding box not found after drag");
     await restoreBtn.click();
 
-    // After restore, attribute data-custom-position should be false
-    await expect(container).toHaveAttribute("data-custom-position", "false");
+    // After restore, root coordinate mode should be back to fixed/default.
+    await expect(page.locator("floating-web-notes #root")).toHaveAttribute(
+      "data-custom-position",
+      "false",
+    );
 
     const restored = await container.boundingBox();
     if (!restored)
@@ -406,5 +498,98 @@ test.describe("panel repositioning", () => {
 
     // Restore button disappears when back to default
     await expect(restoreBtn).toHaveCount(0);
+  });
+
+  test("can be dragged near the visible bottom when html and body are height 100%", async ({
+    page,
+  }) => {
+    await installScrollablePageFixture(page);
+    await page.evaluate(() => window.scrollTo(0, 1200));
+
+    const container = page.locator("floating-web-notes .Container");
+    const handle = page.locator("floating-web-notes .HeaderHandle");
+    const targetTop = 560;
+
+    await dragHandleToPanelTop({
+      page,
+      container,
+      handle,
+      top: targetTop,
+      left: 240,
+    });
+
+    const after = await container.boundingBox();
+    if (!after) throw new Error("Container bounding box not found after drag");
+
+    expect(after.y).toBeGreaterThan(500);
+    expect(Math.abs(after.y - targetTop)).toBeLessThan(8);
+  });
+
+  test("stores page coordinates when dropped after scrolling", async ({
+    page,
+  }) => {
+    await installScrollablePageFixture(page);
+    await page.evaluate(() => window.scrollTo(0, 1200));
+
+    const container = page.locator("floating-web-notes .Container");
+    const handle = page.locator("floating-web-notes .HeaderHandle");
+    const targetTop = 420;
+    const targetLeft = 220;
+
+    await dragHandleToPanelTop({
+      page,
+      container,
+      handle,
+      top: targetTop,
+      left: targetLeft,
+    });
+
+    const dropped = await container.boundingBox();
+    if (!dropped)
+      throw new Error("Container bounding box not found after scroll drag");
+
+    expect(Math.abs(dropped.x - targetLeft)).toBeLessThan(8);
+    expect(Math.abs(dropped.y - targetTop)).toBeLessThan(8);
+
+    await page.reload();
+    await installScrollablePageFixture(page);
+    await page.evaluate(() => window.scrollTo(0, 1200));
+
+    const persisted = await page
+      .locator("floating-web-notes .Container")
+      .boundingBox();
+    if (!persisted)
+      throw new Error("Container bounding box not found after reload");
+
+    expect(Math.abs(persisted.x - dropped.x)).toBeLessThan(8);
+    expect(Math.abs(persisted.y - dropped.y)).toBeLessThan(8);
+  });
+
+  test("default position stays fixed when toggled after scrolling", async ({
+    page,
+  }) => {
+    await installScrollablePageFixture(page);
+
+    const container = page.locator("floating-web-notes .Container");
+    const closeButton = page.locator("floating-web-notes #CloseButton");
+
+    const before = await container.boundingBox();
+    if (!before)
+      throw new Error("Container bounding box not found before scroll toggle");
+
+    await closeButton.click();
+    await expect(container).toHaveCount(0);
+
+    await page.evaluate(() => window.scrollTo(0, 180));
+    await togglePanelFromExtension(page);
+    await expect(container).toBeVisible();
+
+    const reopened = await container.boundingBox();
+    if (!reopened)
+      throw new Error("Container bounding box not found after scroll toggle");
+
+    expect(Math.abs(reopened.x - before.x)).toBeLessThan(3);
+    expect(Math.abs(reopened.y - before.y)).toBeLessThan(3);
+    expect(reopened.y).toBeGreaterThanOrEqual(0);
   });
 });

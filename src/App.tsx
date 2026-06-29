@@ -39,7 +39,11 @@ export const App = () => {
     <>
       <style type="text/css">{styles}</style>
 
-      <div id="root" ref={rootRef}>
+      <div
+        id="root"
+        ref={rootRef}
+        {...(!hasCustomPosition && { "data-custom-position": false })}
+      >
         <Rnd
           default={{
             ...position,
@@ -48,13 +52,14 @@ export const App = () => {
           }}
           position={position}
           dragHandleClassName="HeaderHandle"
-          bounds="body"
           enableResizing={false}
           onDragStop={(_e, d) => {
-            setPosition({ x: d.x, y: d.y });
+            const nextPosition = hasCustomPosition
+              ? { x: d.x, y: d.y }
+              : { x: d.x + window.scrollX, y: d.y + window.scrollY };
+            setPosition(nextPosition);
           }}
           className="Container"
-          {...(!hasCustomPosition && { "data-custom-position": false })}
         >
           {activeView === "help" ? <Help /> : <Notes />}
         </Rnd>
