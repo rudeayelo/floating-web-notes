@@ -511,6 +511,7 @@ em {
     var(--tooltip-bg-end)
   );
   box-shadow: var(--shadow-depth-1);
+  pointer-events: none;
   user-select: none;
   animation-duration: 0.2s;
   animation-timing-function: var(--animation-timing-function);
@@ -601,6 +602,10 @@ em {
 .TooltipContent[data-starting-style][data-side="left"],
 .TooltipContent[data-ending-style][data-side="left"] {
   animation-name: slideRightAndFade;
+}
+
+.TooltipContent[data-ending-style] {
+  animation-direction: reverse;
 }
 
 /* -------------------------------------------------------------------------- */
