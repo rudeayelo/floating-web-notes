@@ -46,6 +46,36 @@ const isValidNote = (value: unknown): value is Note => {
   );
 };
 
+const isValidPosition = (value: unknown): value is { x: number; y: number } => {
+  if (!isRecord(value)) return false;
+
+  return Number.isFinite(value.x) && Number.isFinite(value.y);
+};
+
+const sanitizeUrlState = (value: unknown): UrlState => {
+  if (!isRecord(value)) return {};
+
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([url, state]) => {
+      if (!url || !isRecord(state) || !isValidPosition(state.position)) {
+        return [];
+      }
+
+      return [
+        [
+          url,
+          {
+            position: {
+              x: state.position.x,
+              y: state.position.y,
+            },
+          },
+        ],
+      ];
+    }),
+  );
+};
+
 const getStoredNoteIds = async () => {
   const { notesById } = await chrome.storage.local.get("notesById");
   return Array.isArray(notesById)
@@ -63,11 +93,17 @@ const getStoredNotes = async () => {
     .filter((note): note is Note => isValidNote(note));
 };
 
+const getStoredUrlState = async () => {
+  const { urlState } = await chrome.storage.local.get("urlState");
+  return sanitizeUrlState(urlState);
+};
+
 const createNotesExport = async (): Promise<NotesExport> => ({
   app: notesExportApp,
   schemaVersion: notesExportSchemaVersion,
   exportedAt: new Date().toISOString(),
   notes: await getStoredNotes(),
+  urlState: await getStoredUrlState(),
 });
 
 const sameNoteContent = (a: Note, b: Note) =>
@@ -106,6 +142,8 @@ const importNotes = async (
   }
 
   const existingNotes = await getStoredNotes();
+  const existingUrlState = await getStoredUrlState();
+  const importedUrlState = sanitizeUrlState(exportData.urlState);
   const existingNotesById = new Map(
     existingNotes.map((note) => [note.id, note]),
   );
@@ -140,8 +178,15 @@ const importNotes = async (
 
   const nextNotes =
     mode === "merge" ? [...existingNotes, ...importedNotes] : importedNotes;
+  const nextUrlState =
+    mode === "merge"
+      ? { ...existingUrlState, ...importedUrlState }
+      : importedUrlState;
   const nextNoteIds = nextNotes.map((note) => note.id);
-  const storageUpdate: Record<string, unknown> = { notesById: nextNoteIds };
+  const storageUpdate: Record<string, unknown> = {
+    notesById: nextNoteIds,
+    urlState: nextUrlState,
+  };
 
   for (const note of importedNotes) {
     storageUpdate[note.id] = note;
@@ -158,6 +203,7 @@ const importNotes = async (
     result: {
       imported: importedNotes.length,
       skipped,
+      positionsImported: Object.keys(importedUrlState).length,
       mode,
     },
   };

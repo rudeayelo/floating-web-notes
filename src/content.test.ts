@@ -1,9 +1,10 @@
 import fs from "node:fs/promises";
 import type { BrowserContext, Locator, Page } from "@playwright/test";
 import { expect, test } from "./playwright.fixtures";
-import type { NotesExport } from "./types";
+import type { NotesExport, UrlState } from "./types";
 
 const HOST_URL = "http://localhost:6006";
+const HOST_CLEAN_URL = "http://localhost:6006/";
 
 const getServiceWorker = async (context: BrowserContext) => {
   let [serviceWorker] = context.serviceWorkers();
@@ -293,7 +294,7 @@ test.describe("when a note exists for the current page", () => {
         const warning = page.locator("floating-web-notes .InputHelper");
         await expect(warning).toBeVisible();
 
-        await page.locator("floating-web-notes .URLPatternSaveButton").click();
+        await page.locator("floating-web-notes .NeutralButton").click();
 
         const noteContainer = page.locator("floating-web-notes .Note");
         await expect(noteContainer).not.toBeVisible();
@@ -315,7 +316,7 @@ test.describe("when a note exists for the current page", () => {
         const warning = page.locator("floating-web-notes .InputHelper");
         await expect(warning).not.toBeVisible();
 
-        await page.locator("floating-web-notes .URLPatternSaveButton").click();
+        await page.locator("floating-web-notes .NeutralButton").click();
 
         const noteContainer = page.locator("floating-web-notes .Note");
         await expect(noteContainer).toBeVisible();
@@ -325,7 +326,10 @@ test.describe("when a note exists for the current page", () => {
 });
 
 test.describe("dev note import/export", () => {
-  test("exports notes in the backup format", async ({ page }) => {
+  test("exports notes and page positions in the backup format", async ({
+    page,
+    context,
+  }) => {
     await page.goto(HOST_URL);
     await page
       .locator("floating-web-notes")
@@ -338,6 +342,15 @@ test.describe("dev note import/export", () => {
       .locator("floating-web-notes .NoteEditor > [data-typist-editor='true']")
       .fill(text);
     await page.waitForTimeout(600);
+
+    const serviceWorker = await getServiceWorker(context);
+    await serviceWorker.evaluate(async () => {
+      await chrome.storage.local.set({
+        urlState: {
+          "http://localhost:6006/": { position: { x: 123, y: 456 } },
+        },
+      });
+    });
 
     await page.locator("floating-web-notes #Settings").click();
     const downloadPromise = page.waitForEvent("download");
@@ -360,12 +373,23 @@ test.describe("dev note import/export", () => {
       pattern: "localhost:6006*",
       text,
     });
+    expect(notesExport.urlState[HOST_CLEAN_URL]?.position).toEqual({
+      x: 123,
+      y: 456,
+    });
+
+    await page.locator("floating-web-notes #Settings").click();
+    await expect(
+      page.locator("floating-web-notes #ReplaceNotesMenuItem"),
+    ).toHaveCount(0);
   });
 
   test("imports notes by merging them with existing storage", async ({
     page,
+    context,
   }) => {
     await page.goto(HOST_URL);
+    const serviceWorker = await getServiceWorker(context);
 
     page.on("dialog", async (dialog) => {
       await dialog.accept();
@@ -383,6 +407,9 @@ test.describe("dev note import/export", () => {
           app: "floating-web-notes",
           schemaVersion: 1,
           exportedAt: "2026-06-29T00:00:00.000Z",
+          urlState: {
+            [HOST_CLEAN_URL]: { position: { x: 222, y: 333 } },
+          },
           notes: [
             {
               id: "imported-note",
@@ -394,9 +421,20 @@ test.describe("dev note import/export", () => {
       ),
     });
 
+    await expect(
+      page.locator("floating-web-notes #ImportNotesDialog"),
+    ).toBeVisible();
+    await page.locator("floating-web-notes #ImportNotesAddButton").click();
+
     await expect(page.locator("floating-web-notes .NoteEditor")).toContainText(
       "Imported note content",
     );
+    const storage = (await serviceWorker.evaluate(async () => {
+      return chrome.storage.local.get("urlState");
+    })) as { urlState: UrlState };
+    expect(storage.urlState[HOST_CLEAN_URL]).toEqual({
+      position: { x: 222, y: 333 },
+    });
   });
 
   test("replace imports remove existing notes", async ({ page, context }) => {
@@ -406,6 +444,10 @@ test.describe("dev note import/export", () => {
     const result = await serviceWorker.evaluate(async () => {
       await chrome.storage.local.set({
         notesById: ["old-note"],
+        urlState: {
+          "http://localhost:6006/": { position: { x: 10, y: 20 } },
+          "https://old.example/": { position: { x: 30, y: 40 } },
+        },
         "old-note": {
           id: "old-note",
           pattern: "localhost*",
@@ -424,7 +466,7 @@ test.describe("dev note import/export", () => {
 
     await page.locator("floating-web-notes #Settings").click();
     const fileChooserPromise = page.waitForEvent("filechooser");
-    await page.locator("floating-web-notes #ReplaceNotesMenuItem").click();
+    await page.locator("floating-web-notes #ImportNotesMenuItem").click();
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles({
       name: "floating-web-notes.json",
@@ -434,6 +476,9 @@ test.describe("dev note import/export", () => {
           app: "floating-web-notes",
           schemaVersion: 1,
           exportedAt: "2026-06-29T00:00:00.000Z",
+          urlState: {
+            [HOST_CLEAN_URL]: { position: { x: 444, y: 555 } },
+          },
           notes: [
             {
               id: "replacement-note",
@@ -444,6 +489,11 @@ test.describe("dev note import/export", () => {
         }),
       ),
     });
+
+    await expect(
+      page.locator("floating-web-notes #ImportNotesDialog"),
+    ).toBeVisible();
+    await page.locator("floating-web-notes #ImportNotesReplaceButton").click();
 
     await expect
       .poll(async () => {
@@ -457,6 +507,7 @@ test.describe("dev note import/export", () => {
     const storage = await serviceWorker.evaluate(async () => {
       return chrome.storage.local.get([
         "notesById",
+        "urlState",
         "old-note",
         "replacement-note",
       ]);
@@ -466,6 +517,9 @@ test.describe("dev note import/export", () => {
     expect(storage["old-note"]).toBeUndefined();
     expect(storage["replacement-note"]).toMatchObject({
       text: "Replacement note content",
+    });
+    expect(storage.urlState).toEqual({
+      [HOST_CLEAN_URL]: { position: { x: 444, y: 555 } },
     });
   });
 
@@ -494,7 +548,7 @@ test.describe("dev note import/export", () => {
 
     await page.locator("floating-web-notes #Settings").click();
     const fileChooserPromise = page.waitForEvent("filechooser");
-    await page.locator("floating-web-notes #ReplaceNotesMenuItem").click();
+    await page.locator("floating-web-notes #ImportNotesMenuItem").click();
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles({
       name: "floating-web-notes.json",
@@ -507,6 +561,10 @@ test.describe("dev note import/export", () => {
         }),
       ),
     });
+
+    await expect(
+      page.locator("floating-web-notes #ImportNotesDialog"),
+    ).toHaveCount(0);
 
     const storage = await serviceWorker.evaluate(async () => {
       return chrome.storage.local.get(["notesById", "existing-note"]);

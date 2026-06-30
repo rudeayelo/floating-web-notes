@@ -826,6 +826,23 @@ em {
   }
 }
 
+#root[data-theme="dark"] .AlertActionButton {
+  --bg: linear-gradient(180deg, var(--orange-6), var(--orange-5));
+  --bg-hover: linear-gradient(180deg, var(--orange-5), var(--orange-4));
+  --color: var(--orange-11);
+  --border-color: var(--orange-6);
+
+  cursor: pointer;
+  background: var(--bg);
+  color: var(--color);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 1px 2px var(--gray-2);
+}
+
+#root[data-theme="dark"] .AlertActionButton:hover {
+  background: var(--bg-hover);
+}
+
 .FirstTimeGuide {
   --alert-bg: var(--orange-3);
   --alert-border: var(--orange-6);
@@ -1017,7 +1034,7 @@ em {
   box-shadow: 0 0 0 2px var(--gray-8);
 }
 
-.URLPatternSaveButton {
+.NeutralButton {
   border-radius: 4px;
   padding: 4px 12px;
   font-size: 12px;
@@ -1032,6 +1049,17 @@ em {
     border-color: var(--gray-7);
     background: linear-gradient(180deg, var(--gray-1), var(--gray-2));
   }
+}
+
+#root[data-theme="dark"] .NeutralButton {
+  background: linear-gradient(180deg, var(--gray-5), var(--gray-4));
+  color: var(--gray-12);
+  border: 1px solid var(--gray-6);
+  box-shadow: 0 1px 2px var(--gray-2);
+}
+
+#root[data-theme="dark"] .NeutralButton:hover {
+  background: linear-gradient(180deg, var(--gray-4), var(--gray-3));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1144,6 +1172,71 @@ em {
 }
 [data-disabled] .RightSlot {
   color: var(--gray-8);
+}
+
+/* ---------------------------------- Dialog -------------------------------- */
+
+.DialogBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(28 32 36 / 0.28);
+  z-index: 99999;
+}
+
+.DialogViewport {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 100000;
+}
+
+.DialogPopup {
+  width: min(360px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  color: var(--color-text-primary);
+  background: var(--gray-2);
+  box-shadow: var(--shadow-depth-3);
+  border: 1px solid var(--gray-a4);
+}
+
+.DialogTitle {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.DialogDescription,
+.DialogBodyText {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+  text-wrap: unset;
+}
+
+.DialogActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-block-start: 4px;
+}
+
+.DialogActionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  margin-block-start: 0;
+}
+
+.DialogCancelButton {
+  align-self: center;
+  font-size: 12px;
 }
 
 /* -------------------------------------------------------------------------- */

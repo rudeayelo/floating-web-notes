@@ -14,6 +14,7 @@ export type NotesExport = {
   schemaVersion: 1;
   exportedAt: string;
   notes: Note[];
+  urlState: UrlState;
 };
 
 export type NotesImportMode = "merge" | "replace";
@@ -21,6 +22,7 @@ export type NotesImportMode = "merge" | "replace";
 export type NotesImportResult = {
   imported: number;
   skipped: number;
+  positionsImported: number;
   mode: NotesImportMode;
 };
 

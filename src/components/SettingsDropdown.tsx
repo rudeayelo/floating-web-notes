@@ -1,12 +1,43 @@
+import { Dialog } from "@base-ui/react/dialog";
 import { Menu } from "@base-ui/react/menu";
+import { useState } from "react";
 import { useNotesStore, useSettingsStore, useUIStore } from "../store";
 import type { NotesImportMode, OpenOptions, ThemeOptions } from "../types";
 import { useEnv } from "../utils/hooks";
 import { IconButton } from "./IconButton";
 import { icons } from "./icons";
 
+type PendingNotesImport = {
+  exportData: unknown;
+  fileName: string;
+  noteCount: number;
+};
+
 const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : "Something went wrong.";
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const createImportPreview = (
+  exportData: unknown,
+  fileName: string,
+): PendingNotesImport => {
+  if (
+    !isRecord(exportData) ||
+    exportData.app !== "floating-web-notes" ||
+    exportData.schemaVersion !== 1 ||
+    !Array.isArray(exportData.notes)
+  ) {
+    throw new Error("This does not look like a Floating Web Notes export.");
+  }
+
+  return {
+    exportData,
+    fileName,
+    noteCount: exportData.notes.length,
+  };
+};
 
 export const SettingsDropdown = () => {
   const defaultOpen = useSettingsStore((state) => state.defaultOpen);
@@ -20,6 +51,9 @@ export const SettingsDropdown = () => {
   const importNotes = useNotesStore((state) => state.importNotes);
   const rootRef = useUIStore((state) => state.rootRef);
   const { isDevEnv } = useEnv();
+  const [pendingImport, setPendingImport] = useState<PendingNotesImport | null>(
+    null,
+  );
 
   const handleNuke = async () => {
     await chrome.storage.local.clear();
@@ -47,7 +81,7 @@ export const SettingsDropdown = () => {
     }
   };
 
-  const openImportFilePicker = (mode: NotesImportMode) => {
+  const openImportFilePicker = () => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "application/json,.json";
@@ -57,7 +91,7 @@ export const SettingsDropdown = () => {
       () => {
         const file = input.files?.[0];
         input.remove();
-        void handleImportFileChange(file, mode);
+        void handleImportFileChange(file);
       },
       { once: true },
     );
@@ -67,25 +101,25 @@ export const SettingsDropdown = () => {
     window.setTimeout(() => input.remove(), 60_000);
   };
 
-  const handleImportFileChange = async (
-    file: File | undefined,
-    mode: NotesImportMode,
-  ) => {
+  const handleImportFileChange = async (file: File | undefined) => {
     if (!file) return;
 
     try {
       const exportData = JSON.parse(await file.text()) as unknown;
+      setPendingImport(createImportPreview(exportData, file.name));
+    } catch (error) {
+      window.alert(getErrorMessage(error));
+    }
+  };
 
-      if (
-        mode === "replace" &&
-        !window.confirm("Replace all existing notes with this import?")
-      ) {
-        return;
-      }
+  const handleImportDecision = async (mode: NotesImportMode) => {
+    if (!pendingImport) return;
 
-      const result = await importNotes(exportData, mode);
+    try {
+      const result = await importNotes(pendingImport.exportData, mode);
+      setPendingImport(null);
       window.alert(
-        `Imported ${result.imported} notes. Skipped ${result.skipped}.`,
+        `Imported ${result.imported} notes and ${result.positionsImported} positions. Skipped ${result.skipped}.`,
       );
     } catch (error) {
       window.alert(getErrorMessage(error));
@@ -93,148 +127,189 @@ export const SettingsDropdown = () => {
   };
 
   return (
-    <Menu.Root modal={false}>
-      <Menu.Trigger render={<IconButton icon="menu" id="Settings" />} />
+    <>
+      <Menu.Root modal={false}>
+        <Menu.Trigger render={<IconButton icon="menu" id="Settings" />} />
 
-      <Menu.Portal container={rootRef}>
-        <Menu.Positioner align="end">
-          <Menu.Popup className="DropdownMenuContent">
-            <Menu.Group>
-              <Menu.GroupLabel className="DropdownMenuLabel">
-                Open by default
-              </Menu.GroupLabel>
+        <Menu.Portal container={rootRef}>
+          <Menu.Positioner align="end">
+            <Menu.Popup className="DropdownMenuContent">
+              <Menu.Group>
+                <Menu.GroupLabel className="DropdownMenuLabel">
+                  Open by default
+                </Menu.GroupLabel>
 
-              <Menu.RadioGroup
-                value={defaultOpen}
-                onValueChange={(open) => setDefaultOpen(open as OpenOptions)}
+                <Menu.RadioGroup
+                  value={defaultOpen}
+                  onValueChange={(open) => setDefaultOpen(open as OpenOptions)}
+                >
+                  <Menu.RadioItem
+                    className="DropdownMenuRadioItem"
+                    id="open-default-option-never"
+                    value="never"
+                  >
+                    <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
+                      {icons.check}
+                    </Menu.RadioItemIndicator>
+                    Never
+                  </Menu.RadioItem>
+                  <Menu.RadioItem
+                    className="DropdownMenuRadioItem"
+                    id="open-default-option-always"
+                    value="always"
+                  >
+                    <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
+                      {icons.check}
+                    </Menu.RadioItemIndicator>
+                    On every website
+                  </Menu.RadioItem>
+                  <Menu.RadioItem
+                    className="DropdownMenuRadioItem"
+                    id="open-default-option-with-notes"
+                    value="with-notes"
+                  >
+                    <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
+                      {icons.check}
+                    </Menu.RadioItemIndicator>
+                    Only when there's a note
+                  </Menu.RadioItem>
+                </Menu.RadioGroup>
+              </Menu.Group>
+
+              <Menu.Separator className="DropdownMenuSeparator" />
+
+              <Menu.Group>
+                <Menu.GroupLabel className="DropdownMenuLabel">
+                  Theme
+                </Menu.GroupLabel>
+
+                <Menu.RadioGroup
+                  value={theme}
+                  onValueChange={(theme) => setTheme(theme as ThemeOptions)}
+                >
+                  <Menu.RadioItem
+                    className="DropdownMenuRadioItem"
+                    id="theme-option-light"
+                    value="light"
+                  >
+                    <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
+                      {icons.check}
+                    </Menu.RadioItemIndicator>
+                    Light
+                  </Menu.RadioItem>
+                  <Menu.RadioItem
+                    className="DropdownMenuRadioItem"
+                    id="theme-option-dark"
+                    value="dark"
+                  >
+                    <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
+                      {icons.check}
+                    </Menu.RadioItemIndicator>
+                    Dark
+                  </Menu.RadioItem>
+                  <Menu.RadioItem
+                    className="DropdownMenuRadioItem"
+                    id="theme-option-system"
+                    value="system"
+                  >
+                    <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
+                      {icons.check}
+                    </Menu.RadioItemIndicator>
+                    System
+                  </Menu.RadioItem>
+                </Menu.RadioGroup>
+              </Menu.Group>
+
+              <Menu.Separator className="DropdownMenuSeparator" />
+
+              <Menu.Item
+                className="DropdownMenuItem"
+                onClick={() => setActiveView("help")}
+                id="HelpMenuItem"
               >
-                <Menu.RadioItem
-                  className="DropdownMenuRadioItem"
-                  id="open-default-option-never"
-                  value="never"
-                >
-                  <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
-                    {icons.check}
-                  </Menu.RadioItemIndicator>
-                  Never
-                </Menu.RadioItem>
-                <Menu.RadioItem
-                  className="DropdownMenuRadioItem"
-                  id="open-default-option-always"
-                  value="always"
-                >
-                  <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
-                    {icons.check}
-                  </Menu.RadioItemIndicator>
-                  On every website
-                </Menu.RadioItem>
-                <Menu.RadioItem
-                  className="DropdownMenuRadioItem"
-                  id="open-default-option-with-notes"
-                  value="with-notes"
-                >
-                  <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
-                    {icons.check}
-                  </Menu.RadioItemIndicator>
-                  Only when there's a note
-                </Menu.RadioItem>
-              </Menu.RadioGroup>
-            </Menu.Group>
+                Help
+              </Menu.Item>
 
-            <Menu.Separator className="DropdownMenuSeparator" />
+              {isDevEnv ? (
+                <>
+                  <Menu.Separator className="DropdownMenuSeparator" />
+                  <Menu.Item
+                    className="DropdownMenuItem"
+                    id="ExportNotesMenuItem"
+                    onClick={handleExportNotes}
+                  >
+                    Export notes
+                  </Menu.Item>
+                  <Menu.Item
+                    className="DropdownMenuItem"
+                    id="ImportNotesMenuItem"
+                    onClick={openImportFilePicker}
+                  >
+                    Import notes
+                  </Menu.Item>
+                  <Menu.Item
+                    className="DropdownMenuItem"
+                    onClick={() => setScreenshotMode(true)}
+                  >
+                    Screenshot Mode
+                  </Menu.Item>
+                  <Menu.Item className="DropdownMenuItem" onClick={handleNuke}>
+                    Nuke (Remove all notes)
+                  </Menu.Item>
+                </>
+              ) : null}
 
-            <Menu.Group>
-              <Menu.GroupLabel className="DropdownMenuLabel">
-                Theme
-              </Menu.GroupLabel>
+              <Menu.Arrow className="DropdownMenuArrow" />
+            </Menu.Popup>
+          </Menu.Positioner>
+        </Menu.Portal>
+      </Menu.Root>
 
-              <Menu.RadioGroup
-                value={theme}
-                onValueChange={(theme) => setTheme(theme as ThemeOptions)}
-              >
-                <Menu.RadioItem
-                  className="DropdownMenuRadioItem"
-                  id="theme-option-light"
-                  value="light"
-                >
-                  <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
-                    {icons.check}
-                  </Menu.RadioItemIndicator>
-                  Light
-                </Menu.RadioItem>
-                <Menu.RadioItem
-                  className="DropdownMenuRadioItem"
-                  id="theme-option-dark"
-                  value="dark"
-                >
-                  <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
-                    {icons.check}
-                  </Menu.RadioItemIndicator>
-                  Dark
-                </Menu.RadioItem>
-                <Menu.RadioItem
-                  className="DropdownMenuRadioItem"
-                  id="theme-option-system"
-                  value="system"
-                >
-                  <Menu.RadioItemIndicator className="DropdownMenuItemIndicator">
-                    {icons.check}
-                  </Menu.RadioItemIndicator>
-                  System
-                </Menu.RadioItem>
-              </Menu.RadioGroup>
-            </Menu.Group>
+      <Dialog.Root
+        open={pendingImport !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingImport(null);
+        }}
+      >
+        <Dialog.Portal container={rootRef}>
+          <Dialog.Backdrop className="DialogBackdrop" />
+          <Dialog.Viewport className="DialogViewport">
+            <Dialog.Popup className="DialogPopup" id="ImportNotesDialog">
+              <Dialog.Title className="DialogTitle">Import notes?</Dialog.Title>
+              <Dialog.Description className="DialogDescription">
+                {pendingImport
+                  ? `${pendingImport.fileName} contains ${pendingImport.noteCount} notes.`
+                  : ""}
+              </Dialog.Description>
 
-            <Menu.Separator className="DropdownMenuSeparator" />
-
-            <Menu.Item
-              className="DropdownMenuItem"
-              onClick={() => setActiveView("help")}
-              id="HelpMenuItem"
-            >
-              Help
-            </Menu.Item>
-
-            {isDevEnv ? (
-              <>
-                <Menu.Separator className="DropdownMenuSeparator" />
-                <Menu.Item
-                  className="DropdownMenuItem"
-                  id="ExportNotesMenuItem"
-                  onClick={handleExportNotes}
+              <div className="DialogActions">
+                <button
+                  type="button"
+                  className="NeutralButton DialogActionButton"
+                  id="ImportNotesAddButton"
+                  onClick={() => handleImportDecision("merge")}
                 >
-                  Export notes
-                </Menu.Item>
-                <Menu.Item
-                  className="DropdownMenuItem"
-                  id="ImportNotesMenuItem"
-                  onClick={() => openImportFilePicker("merge")}
+                  Add to existing notes
+                </button>
+                <button
+                  type="button"
+                  className="AlertActionButton DialogActionButton"
+                  id="ImportNotesReplaceButton"
+                  onClick={() => handleImportDecision("replace")}
                 >
-                  Import notes
-                </Menu.Item>
-                <Menu.Item
-                  className="DropdownMenuItem"
-                  id="ReplaceNotesMenuItem"
-                  onClick={() => openImportFilePicker("replace")}
+                  Replace existing notes
+                </button>
+                <Dialog.Close
+                  className="ButtonLink DialogCancelButton"
+                  id="ImportNotesCancelButton"
                 >
-                  Replace notes from file
-                </Menu.Item>
-                <Menu.Item
-                  className="DropdownMenuItem"
-                  onClick={() => setScreenshotMode(true)}
-                >
-                  Screenshot Mode
-                </Menu.Item>
-                <Menu.Item className="DropdownMenuItem" onClick={handleNuke}>
-                  Nuke (Remove all notes)
-                </Menu.Item>
-              </>
-            ) : null}
-
-            <Menu.Arrow className="DropdownMenuArrow" />
-          </Menu.Popup>
-        </Menu.Positioner>
-      </Menu.Portal>
-    </Menu.Root>
+                  Cancel
+                </Dialog.Close>
+              </div>
+            </Dialog.Popup>
+          </Dialog.Viewport>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </>
   );
 };

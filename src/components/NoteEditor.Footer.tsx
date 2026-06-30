@@ -95,7 +95,7 @@ export const NoteFooter = ({ id, pattern }: NoteFooterProps) => {
                   render={
                     <button
                       type="button"
-                      className="URLPatternSaveButton"
+                      className="NeutralButton"
                       onClick={handleURLPatternSave}
                     >
                       Save
