@@ -230,23 +230,25 @@ export const SettingsDropdown = () => {
                 Help
               </Menu.Item>
 
+              <Menu.Separator className="DropdownMenuSeparator" />
+              <Menu.Item
+                className="DropdownMenuItem"
+                id="ExportNotesMenuItem"
+                onClick={handleExportNotes}
+              >
+                Export notes
+              </Menu.Item>
+              <Menu.Item
+                className="DropdownMenuItem"
+                id="ImportNotesMenuItem"
+                onClick={openImportFilePicker}
+              >
+                Import notes
+              </Menu.Item>
+
               {isDevEnv ? (
                 <>
                   <Menu.Separator className="DropdownMenuSeparator" />
-                  <Menu.Item
-                    className="DropdownMenuItem"
-                    id="ExportNotesMenuItem"
-                    onClick={handleExportNotes}
-                  >
-                    Export notes
-                  </Menu.Item>
-                  <Menu.Item
-                    className="DropdownMenuItem"
-                    id="ImportNotesMenuItem"
-                    onClick={openImportFilePicker}
-                  >
-                    Import notes
-                  </Menu.Item>
                   <Menu.Item
                     className="DropdownMenuItem"
                     onClick={() => setScreenshotMode(true)}
