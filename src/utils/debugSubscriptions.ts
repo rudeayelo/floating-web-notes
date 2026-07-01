@@ -147,7 +147,9 @@ export const cleanupDebugSubscriptions = () => {
   if (!isDevEnv) return;
 
   console.log("🧹 Cleaning up debug subscriptions...");
-  unsubscribeFunctions.forEach((unsub) => unsub());
+  for (const unsub of unsubscribeFunctions) {
+    unsub();
+  }
   unsubscribeFunctions = [];
   subscriptionsSetup = false;
 };

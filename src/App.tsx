@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Rnd } from "react-rnd";
 import { Help } from "./components/Help";
 import { Notes } from "./components/Notes";
+import { UtilityFrame } from "./components/UtilityFrame";
 import { useNotesStore, useSettingsStore, useUIStore } from "./store";
 import styles from "./styles.css?inline";
 import { setupDebugSubscriptions } from "./utils/debugSubscriptions";
@@ -11,6 +12,7 @@ import { getResolvedTheme, watchSystemTheme } from "./utils/theme";
 export const App = () => {
   const active = useUIStore((state) => state.active);
   const activeView = useUIStore((state) => state.activeView);
+  const activeUtilityPanel = useUIStore((state) => state.activeUtilityPanel);
   const initializeUIStore = useUIStore((state) => state.initialize);
   const initializeSettingsStore = useSettingsStore((state) => state.initialize);
   const theme = useSettingsStore((state) => state.theme);
@@ -76,9 +78,13 @@ export const App = () => {
               : { x: d.x + window.scrollX, y: d.y + window.scrollY };
             setPosition(nextPosition);
           }}
-          className="Container"
+          className="FloatingWindows"
+          data-utility-active={activeUtilityPanel !== null}
         >
-          {activeView === "help" ? <Help /> : <Notes />}
+          <div className="Container">
+            {activeView === "help" ? <Help /> : <Notes />}
+          </div>
+          <UtilityFrame />
         </Rnd>
       </div>
     </>

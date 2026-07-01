@@ -101,9 +101,198 @@ const togglePanelFromExtension = async (page: Page) => {
   });
 };
 
+const revealUtilityFrame = async (page: Page) => {
+  await page.locator("floating-web-notes .Container").hover();
+  await expect(page.locator("floating-web-notes #UtilityFrame")).toHaveCSS(
+    "opacity",
+    "1",
+  );
+};
+
 test("the main window renders successfully", async ({ page }) => {
   await page.goto(HOST_URL);
   await expect(page.locator("floating-web-notes #root")).toHaveCount(1);
+});
+
+test("the utility frame is visible on hover or active utility panels", async ({
+  page,
+}) => {
+  await page.goto(HOST_URL);
+
+  const utilityFrame = page.locator("floating-web-notes #UtilityFrame");
+  await expect(utilityFrame).toHaveCSS("opacity", "0");
+
+  await revealUtilityFrame(page);
+  await expect(utilityFrame).toHaveCSS("opacity", "1");
+  const mainFrameBox = await page
+    .locator("floating-web-notes .Container")
+    .boundingBox();
+  const utilityFrameBox = await utilityFrame.boundingBox();
+  if (!mainFrameBox || !utilityFrameBox) {
+    throw new Error("Frame bounding boxes not found");
+  }
+  expect(
+    Math.round(utilityFrameBox.y - mainFrameBox.y - mainFrameBox.height),
+  ).toBe(8);
+
+  await page.mouse.move(0, 0);
+  await expect(utilityFrame).toHaveCSS("opacity", "0");
+
+  await revealUtilityFrame(page);
+  await page.locator("floating-web-notes #SearchButton").click();
+  await page.mouse.move(0, 0);
+
+  await expect(utilityFrame).toHaveCSS("opacity", "1");
+  await expect(page.locator("floating-web-notes #SearchPanel")).toBeVisible();
+  const searchInputBox = await page
+    .locator("floating-web-notes #SearchInput")
+    .boundingBox();
+  const activeUtilityFrameBox = await utilityFrame.boundingBox();
+  if (!searchInputBox || !activeUtilityFrameBox) {
+    throw new Error("Search input bounding box not found");
+  }
+  expect(searchInputBox.x).toBeGreaterThanOrEqual(activeUtilityFrameBox.x);
+  expect(searchInputBox.x + searchInputBox.width).toBeLessThanOrEqual(
+    activeUtilityFrameBox.x + activeUtilityFrameBox.width,
+  );
+});
+
+test("searches stored notes after three characters", async ({
+  page,
+  context,
+}) => {
+  await page.goto(HOST_URL);
+
+  const serviceWorker = await getServiceWorker(context);
+  await serviceWorker.evaluate(async () => {
+    await chrome.storage.local.set({
+      notesById: ["alpha-note", "beta-note"],
+      "alpha-note": {
+        id: "alpha-note",
+        pattern: "https://alpha.example/*",
+        text: "Alpha **roadmap** notes",
+      },
+      "beta-note": {
+        id: "beta-note",
+        pattern: "https://beta.example/*",
+        text: "Beta release checklist",
+      },
+    });
+  });
+
+  await revealUtilityFrame(page);
+  await page.locator("floating-web-notes #SearchButton").click();
+  await expect(page.locator("floating-web-notes #SearchPanel")).toBeVisible();
+
+  const searchInput = page.locator("floating-web-notes #SearchInput");
+  await searchInput.fill("al");
+  await expect(page.locator("floating-web-notes .SearchResult")).toHaveCount(0);
+  await expect(page.locator("floating-web-notes .UtilityStatus")).toContainText(
+    "Type 3 characters to search.",
+  );
+  await expect(
+    page.locator("floating-web-notes #SearchPanel .ScrollAreaScrollbar"),
+  ).toHaveCount(0);
+
+  await searchInput.fill("alp");
+  await expect(page.locator("floating-web-notes .SearchResult")).toHaveCount(1);
+  await expect(page.locator("floating-web-notes .SearchResult")).toContainText(
+    "Alpha roadmap notes",
+  );
+  await expect(
+    page.locator("floating-web-notes .SearchResult strong"),
+  ).toContainText("roadmap");
+  await expect(
+    page.locator("floating-web-notes .SearchResult"),
+  ).not.toContainText("Beta release checklist");
+
+  await page.locator("floating-web-notes .SearchResult").click();
+  await expect(
+    page.locator("floating-web-notes #UtilityNoteDetail"),
+  ).toBeVisible();
+  await expect(
+    page.locator("floating-web-notes #UtilityBackButton"),
+  ).toBeVisible();
+  await expect(page.locator("floating-web-notes #SearchButton")).toHaveCount(0);
+  await expect(page.locator("floating-web-notes #AllNotesButton")).toHaveCount(
+    0,
+  );
+  await expect(
+    page.locator("floating-web-notes #UtilityNoteDetail"),
+  ).toContainText("Alpha roadmap notes");
+
+  await page.locator("floating-web-notes #UtilityBackButton").click();
+  await expect(page.locator("floating-web-notes #SearchPanel")).toBeVisible();
+  await expect(searchInput).toHaveValue("alp");
+});
+
+test("lists all stored notes in the utility frame", async ({
+  page,
+  context,
+}) => {
+  await page.goto(HOST_URL);
+
+  const serviceWorker = await getServiceWorker(context);
+  await serviceWorker.evaluate(async () => {
+    const notes = Object.fromEntries(
+      Array.from({ length: 8 }, (_, index) => [
+        `overflow-note-${index}`,
+        {
+          id: `overflow-note-${index}`,
+          pattern: `https://overflow-${index}.example/*`,
+          text: `Overflow note ${index}`,
+        },
+      ]),
+    );
+
+    await chrome.storage.local.set({
+      notesById: ["alpha-note", "beta-note", ...Object.keys(notes)],
+      "alpha-note": {
+        id: "alpha-note",
+        pattern: "https://alpha.example/*",
+        text: "Alpha roadmap notes",
+      },
+      "beta-note": {
+        id: "beta-note",
+        pattern: "https://beta.example/*",
+        text: "Beta release checklist",
+      },
+      ...notes,
+    });
+  });
+
+  await revealUtilityFrame(page);
+  await page.locator("floating-web-notes #AllNotesButton").click();
+
+  await expect(page.locator("floating-web-notes #AllNotesPanel")).toBeVisible();
+  await expect(
+    page.locator("floating-web-notes #AllNotesPanel .ScrollAreaScrollbar"),
+  ).toHaveCSS("opacity", "1");
+  await expect(page.locator("floating-web-notes .UtilityResult")).toHaveCount(
+    10,
+  );
+  await expect(page.locator("floating-web-notes #AllNotesPanel")).toContainText(
+    "Alpha roadmap notes",
+  );
+  await expect(page.locator("floating-web-notes #AllNotesPanel")).toContainText(
+    "Beta release checklist",
+  );
+
+  await page
+    .locator("floating-web-notes .UtilityResult")
+    .filter({ hasText: "Alpha roadmap notes" })
+    .click();
+  await expect(
+    page.locator("floating-web-notes #UtilityNoteDetail"),
+  ).toBeVisible();
+  await page.locator("floating-web-notes .RemoveNoteButton").click();
+  await expect(page.locator("floating-web-notes #AllNotesPanel")).toBeVisible();
+  await expect(
+    page.locator("floating-web-notes #AllNotesPanel"),
+  ).not.toContainText("Alpha roadmap notes");
+  await expect(page.locator("floating-web-notes .UtilityResult")).toHaveCount(
+    9,
+  );
 });
 
 test.describe("the onboarding alert", () => {
@@ -116,6 +305,7 @@ test.describe("the onboarding alert", () => {
     await page.locator("floating-web-notes .NewWholeWebsiteNote").click();
     await expect(onboardingAlert).toBeVisible();
 
+    await revealUtilityFrame(page);
     await page.locator("floating-web-notes #Settings").click();
     await page.locator("floating-web-notes #HelpMenuItem").click();
     await expect(onboardingAlert).toBeVisible();
@@ -257,6 +447,36 @@ test.describe("when a note exists for the current page", () => {
     expect(hostPageKeyEvents).toEqual([]);
   });
 
+  test("URL pattern editor keystrokes do not reach host page keyboard listeners", async ({
+    page,
+  }) => {
+    await page.evaluate(() => {
+      const keyEvents: string[] = [];
+      Object.assign(window, { __fwnKeyEvents: keyEvents });
+
+      for (const eventName of ["keydown", "keypress", "keyup"]) {
+        document.addEventListener(eventName, (event) => {
+          keyEvents.push(`${eventName}:${(event as KeyboardEvent).key}`);
+        });
+      }
+    });
+
+    await page.locator("floating-web-notes .URLPatternButtonText").click();
+    const patternInput = page.locator("floating-web-notes .URLPatternInput");
+    await patternInput.click();
+    await page.keyboard.type("g");
+    await page.keyboard.press("ArrowLeft");
+    await page.keyboard.down("Shift");
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.up("Shift");
+
+    await expect(patternInput).toHaveValue(/g/);
+    const hostPageKeyEvents = await page.evaluate(
+      () => (window as unknown as { __fwnKeyEvents: string[] }).__fwnKeyEvents,
+    );
+    expect(hostPageKeyEvents).toEqual([]);
+  });
+
   test("it can be removed", async ({ page }) => {
     await page.locator("floating-web-notes .RemoveNoteButton").click();
 
@@ -352,6 +572,7 @@ test.describe("dev note import/export", () => {
       });
     });
 
+    await revealUtilityFrame(page);
     await page.locator("floating-web-notes #Settings").click();
     const downloadPromise = page.waitForEvent("download");
     await page.locator("floating-web-notes #ExportNotesMenuItem").click();
@@ -378,6 +599,7 @@ test.describe("dev note import/export", () => {
       y: 456,
     });
 
+    await revealUtilityFrame(page);
     await page.locator("floating-web-notes #Settings").click();
     await expect(
       page.locator("floating-web-notes #ReplaceNotesMenuItem"),
@@ -395,6 +617,7 @@ test.describe("dev note import/export", () => {
       await dialog.accept();
     });
 
+    await revealUtilityFrame(page);
     await page.locator("floating-web-notes #Settings").click();
     const fileChooserPromise = page.waitForEvent("filechooser");
     await page.locator("floating-web-notes #ImportNotesMenuItem").click();
@@ -464,6 +687,7 @@ test.describe("dev note import/export", () => {
       await dialog.accept();
     });
 
+    await revealUtilityFrame(page);
     await page.locator("floating-web-notes #Settings").click();
     const fileChooserPromise = page.waitForEvent("filechooser");
     await page.locator("floating-web-notes #ImportNotesMenuItem").click();
@@ -546,6 +770,7 @@ test.describe("dev note import/export", () => {
       await dialog.accept();
     });
 
+    await revealUtilityFrame(page);
     await page.locator("floating-web-notes #Settings").click();
     const fileChooserPromise = page.waitForEvent("filechooser");
     await page.locator("floating-web-notes #ImportNotesMenuItem").click();
@@ -622,6 +847,7 @@ test.describe('when the "Open by default" setting is set to...', () => {
       page,
       context,
     }) => {
+      await revealUtilityFrame(page);
       await page.locator("floating-web-notes #Settings").click();
       await page
         .locator("floating-web-notes #open-default-option-never")
@@ -641,6 +867,7 @@ test.describe('when the "Open by default" setting is set to...', () => {
       page,
       context,
     }) => {
+      await revealUtilityFrame(page);
       await page.locator("floating-web-notes #Settings").click();
       await page
         .locator("floating-web-notes #open-default-option-always")
@@ -661,6 +888,7 @@ test.describe('when the "Open by default" setting is set to...', () => {
       page,
       context,
     }) => {
+      await revealUtilityFrame(page);
       await page.locator("floating-web-notes #Settings").click();
       await page
         .locator("floating-web-notes #open-default-option-with-notes")
@@ -678,6 +906,7 @@ test.describe('when the "Open by default" setting is set to...', () => {
     }) => {
       await page.locator("floating-web-notes .NewWholeWebsiteNote").click();
 
+      await revealUtilityFrame(page);
       await page.locator("floating-web-notes #Settings").click();
       await page
         .locator("floating-web-notes #open-default-option-with-notes")
@@ -697,6 +926,7 @@ test.describe("theme setting", () => {
   });
 
   test("applies and persists dark mode", async ({ page, context }) => {
+    await revealUtilityFrame(page);
     await page.locator("floating-web-notes #Settings").click();
     await page.locator("floating-web-notes #theme-option-dark").click();
 
@@ -717,6 +947,7 @@ test.describe("theme setting", () => {
   }) => {
     await page.emulateMedia({ colorScheme: "dark" });
 
+    await revealUtilityFrame(page);
     await page.locator("floating-web-notes #Settings").click();
     await page.locator("floating-web-notes #theme-option-system").click();
 

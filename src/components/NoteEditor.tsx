@@ -6,7 +6,10 @@ import { useNotesStore } from "../store";
 import type { Note } from "../types";
 import { NoteFooter } from "./NoteEditor.Footer";
 
-export type NoteProps = ComponentProps<"div"> & Note;
+export type NoteProps = ComponentProps<"div"> &
+  Note & {
+    onRemove?: () => void;
+  };
 
 export const defaultText = "&#8203;";
 
@@ -14,6 +17,7 @@ export const NoteEditor = ({
   id,
   text = defaultText,
   pattern,
+  onRemove,
   ...props
 }: NoteProps) => {
   const setNote = useNotesStore((state) => state.setNote);
@@ -61,7 +65,7 @@ export const NoteEditor = ({
         autoFocus={true}
       />
 
-      <NoteFooter id={id} pattern={pattern} />
+      <NoteFooter id={id} pattern={pattern} onRemove={onRemove} />
     </div>
   );
 };

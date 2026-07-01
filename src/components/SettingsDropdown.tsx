@@ -13,6 +13,10 @@ type PendingNotesImport = {
   noteCount: number;
 };
 
+type SettingsDropdownProps = {
+  onMenuOpenChange?: (open: boolean) => void;
+};
+
 const getErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : "Something went wrong.";
 
@@ -39,7 +43,9 @@ const createImportPreview = (
   };
 };
 
-export const SettingsDropdown = () => {
+export const SettingsDropdown = ({
+  onMenuOpenChange,
+}: SettingsDropdownProps) => {
   const defaultOpen = useSettingsStore((state) => state.defaultOpen);
   const setDefaultOpen = useSettingsStore((state) => state.setDefaultOpen);
   const theme = useSettingsStore((state) => state.theme);
@@ -128,7 +134,7 @@ export const SettingsDropdown = () => {
 
   return (
     <>
-      <Menu.Root modal={false}>
+      <Menu.Root modal={false} onOpenChange={onMenuOpenChange}>
         <Menu.Trigger render={<IconButton icon="menu" id="Settings" />} />
 
         <Menu.Portal container={rootRef}>

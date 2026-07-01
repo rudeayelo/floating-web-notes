@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useUIStore } from "../store";
 import { IconButton } from "./IconButton";
 import { icons } from "./icons";
-import { SettingsDropdown } from "./SettingsDropdown";
 
 export const Header = () => {
   const setActive = useUIStore((state) => state.setActive);
@@ -96,8 +95,6 @@ export const Header = () => {
             </Tooltip.Portal>
           </Tooltip.Root>
         )}
-
-        <SettingsDropdown />
       </div>
     </div>
   );

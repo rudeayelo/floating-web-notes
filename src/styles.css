@@ -315,6 +315,22 @@ h6 {
   }
 }
 
+.FloatingWindows {
+  max-width: var(--window-width);
+  display: flex;
+  flex-direction: column;
+  transition: opacity 0.3s var(--animation-timing-function);
+  opacity: 1;
+
+  @starting-style {
+    opacity: 0;
+  }
+
+  &.react-draggable-dragging {
+    user-select: none;
+  }
+}
+
 .Container {
   max-width: var(--window-width);
   display: flex;
@@ -324,17 +340,47 @@ h6 {
   color: var(--color-text-primary);
   box-shadow: var(--shadow-depth-3);
   backdrop-filter: blur(20px);
-  transition: opacity 0.3s var(--animation-timing-function);
+}
+
+.UtilityFrame {
+  width: var(--window-width);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-block-start: 8px;
+  padding: 8px;
+  border-radius: 8px;
+  background: var(--color-container-bg);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-depth-3);
+  backdrop-filter: blur(20px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s var(--animation-timing-function);
+}
+
+.UtilityFrame > div:empty {
+  display: none;
+}
+
+.FloatingWindows:is(:hover, :focus-within) .UtilityFrame,
+.FloatingWindows[data-utility-active="true"] .UtilityFrame,
+.UtilityFrame[data-settings-open="true"] {
   opacity: 1;
+  pointer-events: auto;
+}
 
-  @starting-style {
-    /* biome-ignore lint/suspicious/noDuplicateProperties: Not a duplicate */
-    opacity: 0;
-  }
+.UtilityToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-  &.react-draggable-dragging {
-    user-select: none !important;
-  }
+.UtilityToolbarStart,
+.UtilityToolbarEnd {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .Page {
@@ -447,6 +493,12 @@ em {
   opacity: 1;
 }
 
+.FloatingWindows:focus-within .GhostButton,
+.FloatingWindows[data-utility-active="true"] .GhostButton,
+.UtilityFrame[data-settings-open="true"] .GhostButton {
+  opacity: 1;
+}
+
 .IconButton {
   padding: 4px;
   border-radius: 4px;
@@ -460,6 +512,15 @@ em {
 
     &:hover {
       background: var(--gray-a3);
+    }
+
+    &[data-active="true"] {
+      color: white;
+      background: var(--gray-11);
+
+      &:hover {
+        background: var(--gray-11);
+      }
     }
   }
 
@@ -611,6 +672,151 @@ em {
 /* -------------------------------------------------------------------------- */
 /*                                    Notes                                   */
 /* -------------------------------------------------------------------------- */
+
+.UtilityPanelContent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.SearchInput {
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.2;
+  color: var(--gray-12);
+  background: var(--gray-a2);
+  box-shadow: 0 0 0 1px var(--gray-7);
+
+  &::placeholder {
+    color: var(--gray-10);
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 2px var(--gray-8);
+  }
+}
+
+.UtilityResults {
+  display: flex;
+  flex-direction: column;
+  padding-block: 12px;
+  padding-inline-end: 4px;
+}
+
+.UtilityStatus {
+  padding-block-end: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+  text-wrap: unset;
+
+  &[data-state="error"] {
+    color: var(--color-text-error);
+  }
+}
+
+.UtilityResult {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-inline-start: 16px;
+  padding-inline-end: 12px;
+  padding-block-start: 8px;
+  padding-block-end: 12px;
+  cursor: pointer;
+  outline: none;
+
+  &:hover {
+    border-radius: 4px;
+    background: var(--gray-a3);
+  }
+
+  &:focus-visible {
+    border-radius: 4px;
+    box-shadow: 0 0 0 2px var(--gray-8);
+  }
+}
+
+.UtilityResultPattern {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  & > svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  & > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.UtilityResultPreview {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--color-text-primary);
+  text-wrap: unset;
+
+  [data-typist-editor] {
+    white-space: pre-wrap;
+
+    &:focus-within {
+      outline: none;
+    }
+
+    &
+      :is(p, h1, h2, h3, h4, h5, h6, ul, ol, pre, blockquote):not(
+        li > p,
+        :last-child
+      ) {
+      margin-block-end: 8px;
+    }
+
+    & :is(ul, ol) {
+      padding-inline-start: 16px;
+    }
+
+    & b {
+      font-weight: 600;
+    }
+
+    & a {
+      color: var(--color-text-link);
+      cursor: pointer;
+    }
+
+    & code {
+      font-size: 11px;
+      color: var(--gray-11);
+    }
+  }
+}
+
+.UtilityNoteDetail {
+  padding-inline: 16px;
+  padding-block-end: 16px;
+
+  & .Note {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+}
 
 .CreateNoteState {
   display: flex;
@@ -1292,6 +1498,16 @@ em {
   max-height: 500px;
 }
 
+.ScrollAreaRoot.UtilityScrollArea {
+  width: 100%;
+  height: auto;
+  max-height: 260px;
+}
+
+.ScrollAreaViewport.UtilityScrollAreaViewport {
+  max-height: 260px;
+}
+
 .ScrollAreaScrollbar {
   display: flex;
   user-select: none;
@@ -1314,6 +1530,11 @@ em {
 .ScrollAreaScrollbar[data-scrolling] {
   opacity: 1;
   transition-duration: 75ms;
+  transition-delay: 0ms;
+}
+
+.UtilityScrollArea .ScrollAreaScrollbar {
+  opacity: 1;
   transition-delay: 0ms;
 }
 

@@ -1,5 +1,6 @@
 import { Popover } from "@base-ui/react/popover";
 import { Tooltip } from "@base-ui/react/tooltip";
+import type { KeyboardEvent } from "react";
 import { useCallback, useState } from "react";
 import { useNotesStore, useUIStore } from "../store";
 import { urlMatchesPattern } from "../utils/urls";
@@ -9,9 +10,10 @@ import { icons } from "./icons";
 interface NoteFooterProps {
   id: string;
   pattern: string;
+  onRemove?: () => void;
 }
 
-export const NoteFooter = ({ id, pattern }: NoteFooterProps) => {
+export const NoteFooter = ({ id, pattern, onRemove }: NoteFooterProps) => {
   const setNote = useNotesStore((state) => state.setNote);
   const getNote = useNotesStore((state) => state.getNote);
   const updateNotes = useNotesStore((state) => state.updateNotes);
@@ -24,6 +26,7 @@ export const NoteFooter = ({ id, pattern }: NoteFooterProps) => {
   const onRemoveNote = async () => {
     await removeNote(id);
     forceNotesUpdate();
+    onRemove?.();
   };
 
   const handleURLPatternChange = useCallback((pattern: string) => {
@@ -47,6 +50,10 @@ export const NoteFooter = ({ id, pattern }: NoteFooterProps) => {
     setURLPatternWarning(false);
   };
 
+  const stopKeyboardPropagation = (event: KeyboardEvent<HTMLInputElement>) => {
+    event.stopPropagation();
+  };
+
   return (
     <div className="NoteFooter">
       <Popover.Root>
@@ -68,6 +75,9 @@ export const NoteFooter = ({ id, pattern }: NoteFooterProps) => {
                     id="url-pattern"
                     defaultValue={URLPattern}
                     onChange={(evt) => handleURLPatternChange(evt.target.value)}
+                    onKeyDownCapture={stopKeyboardPropagation}
+                    onKeyPressCapture={stopKeyboardPropagation}
+                    onKeyUpCapture={stopKeyboardPropagation}
                   />
                   <Tooltip.Root>
                     <Tooltip.Trigger

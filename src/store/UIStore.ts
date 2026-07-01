@@ -15,6 +15,9 @@ type UIState = {
   setActive: (active: boolean) => Promise<void>;
   activeView: "notes" | "help";
   setActiveView: (view: "notes" | "help") => void;
+  activeUtilityPanel: "search" | "all-notes" | null;
+  setActiveUtilityPanel: (panel: "search" | "all-notes" | null) => void;
+  toggleUtilityPanel: (panel: "search" | "all-notes") => void;
   screenshotMode: boolean;
   setScreenshotMode: (mode: boolean) => void;
   position: Position;
@@ -59,6 +62,17 @@ export const useUIStore = create<UIState>((set) => ({
   /* -------------------------------------------------------------------------- */
   activeView: "notes",
   setActiveView: (view: "notes" | "help") => set({ activeView: view }),
+
+  /* -------------------------------------------------------------------------- */
+  /*                                Search state                                */
+  /* -------------------------------------------------------------------------- */
+  activeUtilityPanel: null,
+  setActiveUtilityPanel: (panel: "search" | "all-notes" | null) =>
+    set({ activeUtilityPanel: panel }),
+  toggleUtilityPanel: (panel: "search" | "all-notes") =>
+    set((state) => ({
+      activeUtilityPanel: state.activeUtilityPanel === panel ? null : panel,
+    })),
 
   /* -------------------------------------------------------------------------- */
   /*                             Screenshot Mode                                */
