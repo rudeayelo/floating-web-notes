@@ -5,8 +5,6 @@ import { icons } from "./icons";
 import { NotePreview } from "./NotePreview";
 import { ScrollArea } from "./ScrollArea";
 
-const minSearchCharacters = 3;
-
 const normalizeSearchValue = (value: string) => value.trim().toLowerCase();
 
 const matchesNote = (note: Note, query: string) => {
@@ -70,12 +68,12 @@ export const SearchNotes = ({
   }, []);
 
   const results = useMemo<Note[]>(() => {
-    if (normalizedQuery.length < minSearchCharacters) return [];
+    if (normalizedQuery.length === 0) return [];
 
     return notes.filter((note) => matchesNote(note, normalizedQuery));
   }, [notes, normalizedQuery]);
 
-  const showResults = normalizedQuery.length >= minSearchCharacters;
+  const showResults = normalizedQuery.length > 0;
 
   return (
     <div className="SearchPanel UtilityPanelContent" id="SearchPanel">
@@ -96,11 +94,7 @@ export const SearchNotes = ({
         <p className="UtilityStatus" data-state="error" aria-live="polite">
           {error}
         </p>
-      ) : !showResults ? (
-        <p className="UtilityStatus" aria-live="polite">
-          Type 3 characters to search.
-        </p>
-      ) : results.length > 0 ? (
+      ) : !showResults ? null : results.length > 0 ? (
         <ScrollArea
           className="UtilityScrollArea"
           viewportClassName="UtilityScrollAreaViewport"

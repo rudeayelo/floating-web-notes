@@ -157,7 +157,7 @@ test("the utility frame is visible on hover or active utility panels", async ({
   );
 });
 
-test("searches stored notes after three characters", async ({
+test("searches stored notes from the first character", async ({
   page,
   context,
 }) => {
@@ -170,7 +170,7 @@ test("searches stored notes after three characters", async ({
       "alpha-note": {
         id: "alpha-note",
         pattern: "https://alpha.example/*",
-        text: "Alpha **roadmap** notes",
+        text: "Quartz **roadmap** notes",
       },
       "beta-note": {
         id: "beta-note",
@@ -185,19 +185,25 @@ test("searches stored notes after three characters", async ({
   await expect(page.locator("floating-web-notes #SearchPanel")).toBeVisible();
 
   const searchInput = page.locator("floating-web-notes #SearchInput");
-  await searchInput.fill("al");
+  await expect(page.locator("floating-web-notes .UtilityStatus")).toHaveCount(0);
   await expect(page.locator("floating-web-notes .SearchResult")).toHaveCount(0);
-  await expect(page.locator("floating-web-notes .UtilityStatus")).toContainText(
-    "Type 3 characters to search.",
+
+  await searchInput.fill("q");
+  await expect(page.locator("floating-web-notes .SearchResult")).toHaveCount(1);
+  await expect(page.locator("floating-web-notes .SearchResult")).toContainText(
+    "Quartz roadmap notes",
   );
+  await expect(
+    page.locator("floating-web-notes .SearchResult strong"),
+  ).toContainText("roadmap");
   await expect(
     page.locator("floating-web-notes #SearchPanel .ScrollAreaScrollbar"),
   ).toHaveCount(0);
 
-  await searchInput.fill("alp");
+  await searchInput.fill("qua");
   await expect(page.locator("floating-web-notes .SearchResult")).toHaveCount(1);
   await expect(page.locator("floating-web-notes .SearchResult")).toContainText(
-    "Alpha roadmap notes",
+    "Quartz roadmap notes",
   );
   await expect(
     page.locator("floating-web-notes .SearchResult strong"),
@@ -219,11 +225,11 @@ test("searches stored notes after three characters", async ({
   );
   await expect(
     page.locator("floating-web-notes #UtilityNoteDetail"),
-  ).toContainText("Alpha roadmap notes");
+  ).toContainText("Quartz roadmap notes");
 
   await page.locator("floating-web-notes #UtilityBackButton").click();
   await expect(page.locator("floating-web-notes #SearchPanel")).toBeVisible();
-  await expect(searchInput).toHaveValue("alp");
+  await expect(searchInput).toHaveValue("qua");
 });
 
 test("lists all stored notes in the utility frame", async ({
