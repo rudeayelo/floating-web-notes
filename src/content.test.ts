@@ -185,7 +185,9 @@ test("searches stored notes from the first character", async ({
   await expect(page.locator("floating-web-notes #SearchPanel")).toBeVisible();
 
   const searchInput = page.locator("floating-web-notes #SearchInput");
-  await expect(page.locator("floating-web-notes .UtilityStatus")).toHaveCount(0);
+  await expect(page.locator("floating-web-notes .UtilityStatus")).toHaveCount(
+    0,
+  );
   await expect(page.locator("floating-web-notes .SearchResult")).toHaveCount(0);
 
   await searchInput.fill("q");
@@ -298,6 +300,62 @@ test("lists all stored notes in the utility frame", async ({
   ).not.toContainText("Alpha roadmap notes");
   await expect(page.locator("floating-web-notes .UtilityResult")).toHaveCount(
     9,
+  );
+});
+
+test("editing an off-page note from all notes does not add it to the current page notes", async ({
+  page,
+  context,
+}) => {
+  const serviceWorker = await getServiceWorker(context);
+  await serviceWorker.evaluate(async () => {
+    await chrome.storage.local.set({
+      firstTimeNoticeAck: true,
+      notesById: ["current-page-note", "off-page-note"],
+      "current-page-note": {
+        id: "current-page-note",
+        pattern: "localhost:6006*",
+        text: "Current page note",
+      },
+      "off-page-note": {
+        id: "off-page-note",
+        pattern: "https://off-page.example/*",
+        text: "Remote note",
+      },
+    });
+  });
+
+  await page.goto(HOST_URL);
+  await expect(page.locator("floating-web-notes .Note")).toHaveCount(1);
+  await expect(page.locator("floating-web-notes .Note")).toContainText(
+    "Current page note",
+  );
+
+  await revealUtilityFrame(page);
+  await page.locator("floating-web-notes #AllNotesButton").click();
+  await page
+    .locator("floating-web-notes .UtilityResult")
+    .filter({ hasText: "Remote note" })
+    .click();
+
+  const utilityEditor = page.locator(
+    "floating-web-notes #UtilityNoteDetail .NoteEditor > [data-typist-editor='true']",
+  );
+  await utilityEditor.fill("Edited remote note");
+  await page.waitForTimeout(1000);
+
+  await page.locator("floating-web-notes #UtilityBackButton").click();
+  await page.locator("floating-web-notes #AllNotesButton").click();
+
+  await expect(page.locator("floating-web-notes #AllNotesPanel")).toHaveCount(
+    0,
+  );
+  await expect(page.locator("floating-web-notes .Note")).toHaveCount(1);
+  await expect(page.locator("floating-web-notes .Note")).toContainText(
+    "Current page note",
+  );
+  await expect(page.locator("floating-web-notes .Note")).not.toContainText(
+    "Edited remote note",
   );
 });
 

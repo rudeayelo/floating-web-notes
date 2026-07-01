@@ -7,6 +7,7 @@ import type {
   NotesImportResult,
 } from "../types";
 import { getCurrentWebNotes } from "../utils/getCurrentWebNotes";
+import { urlMatchesPattern } from "../utils/urls";
 
 type NotesState = {
   notes: Note[];
@@ -34,18 +35,24 @@ export const useNotesStore = create<NotesState>((set) => ({
     // Persist to storage (background ensures notesById contains the id)
     await Api.set.note(note);
 
-    // Sync local state: update note content and refresh notesById from storage
-    const latestIds = await Api.get.notesById();
+    // Keep local state scoped to notes that match the current page.
     set((state) => {
       const exists = state.notes.some((n) => n.id === note.id);
+      const matchesCurrentPage = urlMatchesPattern({ pattern: note.pattern });
 
       if (exists) {
-        const notes = state.notes.map((n) => (n.id === note.id ? note : n));
+        const notes = matchesCurrentPage
+          ? state.notes.map((n) => (n.id === note.id ? note : n))
+          : state.notes.filter((n) => n.id !== note.id);
         return { notes };
       }
 
+      if (!matchesCurrentPage) {
+        return state;
+      }
+
       const notes = [...state.notes, note];
-      return { notes, notesById: latestIds };
+      return { notes };
     });
   },
   getNote: async (id: string) => {
@@ -53,10 +60,8 @@ export const useNotesStore = create<NotesState>((set) => ({
   },
   removeNote: async (id: string) => {
     await Api.remove.note(id);
-    const latestIds = await Api.get.notesById();
     set((state) => ({
       notes: state.notes.filter((n) => n.id !== id),
-      notesById: latestIds,
     }));
   },
   exportNotes: async () => {
