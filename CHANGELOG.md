@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.3.1](https://github.com/rudeayelo/floating-web-notes/compare/v0.3.0...v0.3.1) (2026-07-01)
+
+
+### Bug Fixes
+
+* search notes from first character ([71df01b](https://github.com/rudeayelo/floating-web-notes/commit/71df01b596aaf9bc3705e086f118e4a8effd5834))
+
 ## [0.3.0](https://github.com/rudeayelo/floating-web-notes/compare/v0.2.0...v0.3.0) (2026-07-01)
 
 
