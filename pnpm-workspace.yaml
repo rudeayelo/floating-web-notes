@@ -3,3 +3,7 @@ minimumReleaseAgeExclude:
 onlyBuiltDependencies:
   - puppeteer
   - unrs-resolver
+peerDependencyRules:
+  allowedVersions:
+    "@doist/typist@15>react": "19"
+    "@doist/typist@15>react-dom": "19"
