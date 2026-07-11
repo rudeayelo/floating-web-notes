@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.3.4](https://github.com/rudeayelo/floating-web-notes/compare/v0.3.3...v0.3.4) (2026-07-11)
+
+
+### Bug Fixes
+
+* harden extension manifest and assets ([34ce2a8](https://github.com/rudeayelo/floating-web-notes/commit/34ce2a851d2c77974244d115c2a2ad85ee6e3b9f))
+* serialize storage mutations and messaging ([8e6cb2b](https://github.com/rudeayelo/floating-web-notes/commit/8e6cb2beb384f556c7403b17f11bcc717f8ae9cb))
+
 ## [0.3.3](https://github.com/rudeayelo/floating-web-notes/compare/v0.3.2...v0.3.3) (2026-07-03)
 
 ## [0.3.2](https://github.com/rudeayelo/floating-web-notes/compare/v0.3.1...v0.3.2) (2026-07-01)
