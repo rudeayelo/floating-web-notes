@@ -13,6 +13,7 @@ export default defineManifest(async (env) => ({
     env.mode === "staging" ? "[Dev] Floating Web Notes" : "Floating Web Notes",
   description: "Attach text notes to web pages",
   author: { email: "info@rudeworks.com" },
+  minimum_chrome_version: "102",
   version: `${major}.${minor}.${patch}.${label}`,
   version_name: version,
   icons: {
@@ -54,5 +55,5 @@ export default defineManifest(async (env) => ({
       resources: ["src/assets/*"],
     },
   ],
-  permissions: ["storage", "unlimitedStorage", "activeTab"],
+  permissions: ["storage", "unlimitedStorage"],
 }));
