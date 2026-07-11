@@ -6,14 +6,68 @@ import type {
   NotesImportResponse,
   OpenOptions,
   Position,
+  RuntimeMessageResponse,
   ThemeOptions,
 } from "./types";
 
-const sendMessage = <T>(message: {
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : String(error);
+
+export class RuntimeMessageError extends Error {
+  readonly code: string;
+  readonly cause?: unknown;
+
+  constructor(code: string, message: string, cause?: unknown) {
+    super(message);
+    this.name = "RuntimeMessageError";
+    this.code = code;
+    this.cause = cause;
+  }
+}
+
+const sendMessage = async <T>(message: {
   type: string;
   [key: string]: unknown;
 }): Promise<T> => {
-  return chrome.runtime.sendMessage(message);
+  let response: unknown;
+
+  try {
+    response = await chrome.runtime.sendMessage(message);
+  } catch (error) {
+    throw new RuntimeMessageError(
+      "MESSAGE_SEND_FAILED",
+      `${message.type} could not reach the extension background: ${getErrorMessage(error)}`,
+      error,
+    );
+  }
+
+  if (!isRecord(response) || typeof response.ok !== "boolean") {
+    throw new RuntimeMessageError(
+      "INVALID_RESPONSE",
+      `${message.type} returned an invalid response from the extension background.`,
+    );
+  }
+
+  const runtimeResponse = response as RuntimeMessageResponse<T>;
+  if (!runtimeResponse.ok) {
+    const error = runtimeResponse.error;
+    throw new RuntimeMessageError(
+      error?.code || "BACKGROUND_ERROR",
+      `${message.type} failed: ${error?.message || "Unknown background error."}`,
+    );
+  }
+
+  return runtimeResponse.data;
+};
+
+const sendCommand = async (message: {
+  type: string;
+  [key: string]: unknown;
+}): Promise<void> => {
+  await sendMessage<true>(message);
 };
 
 export const Api = {
@@ -60,25 +114,22 @@ export const Api = {
   },
   set: {
     visibility: (value: "visible" | "hidden") => {
-      return sendMessage({ type: "setVisibility", value });
+      return sendCommand({ type: "setVisibility", value });
     },
     openDefault: (value: OpenOptions) => {
-      return sendMessage({ type: "setOpenDefault", value });
+      return sendCommand({ type: "setOpenDefault", value });
     },
     theme: (theme: ThemeOptions) => {
-      return sendMessage({ type: "setTheme", theme });
+      return sendCommand({ type: "setTheme", theme });
     },
     previousVersion: (value: string) => {
-      return sendMessage({ type: "setPreviousVersion", value });
+      return sendCommand({ type: "setPreviousVersion", value });
     },
     firstTimeNoticeAck: (value: boolean) => {
-      return sendMessage({ type: "setFirstTimeNoticeAck", value });
-    },
-    notesById: (notesById: string[]) => {
-      return sendMessage({ type: "setNotesById", notesById });
+      return sendCommand({ type: "setFirstTimeNoticeAck", value });
     },
     note: ({ id, pattern, text }: Note) => {
-      return sendMessage({ type: "setNote", id, pattern, text });
+      return sendCommand({ type: "setNote", id, pattern, text });
     },
     notesImport: (
       exportData: unknown,
@@ -87,26 +138,26 @@ export const Api = {
       return sendMessage({ type: "importNotes", exportData, mode });
     },
     position: (url: string, position: Position) => {
-      return sendMessage({ type: "setPosition", url, position });
+      return sendCommand({ type: "setPosition", url, position });
     },
     dragHandleDiscovered: (value: boolean) => {
-      return sendMessage({ type: "setDragHandleDiscovered", value });
+      return sendCommand({ type: "setDragHandleDiscovered", value });
     },
   },
   remove: {
     note: (id: string) => {
-      return sendMessage({ type: "removeNote", id });
+      return sendCommand({ type: "removeNote", id });
     },
     position: (url: string) => {
-      return sendMessage({ type: "removePosition", url });
+      return sendCommand({ type: "removePosition", url });
     },
   },
   do: {
     openExtensionPage: () => {
-      return sendMessage({ type: "openExtensionPage" });
+      return sendCommand({ type: "openExtensionPage" });
     },
     reloadExtension: () => {
-      return sendMessage({ type: "reloadExtension" });
+      return sendCommand({ type: "reloadExtension" });
     },
   },
 };

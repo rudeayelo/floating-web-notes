@@ -75,9 +75,9 @@ export const Header = () => {
                   onMouseLeave={closeRestorePositionTooltip}
                   onFocus={() => setRestorePositionTooltipOpen(true)}
                   onBlur={closeRestorePositionTooltip}
-                  onClick={() => {
+                  onClick={async () => {
                     closeRestorePositionTooltip();
-                    restorePosition(window.location.href);
+                    await restorePosition(window.location.href);
                   }}
                   id="RestorePositionButton"
                 />

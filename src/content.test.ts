@@ -114,6 +114,84 @@ test("the main window renders successfully", async ({ page }) => {
   await expect(page.locator("floating-web-notes #root")).toHaveCount(1);
 });
 
+test("concurrent note creation keeps every note indexed", async ({
+  page,
+  context,
+}) => {
+  const serviceWorker = await getServiceWorker(context);
+  await serviceWorker.evaluate(async () => {
+    await chrome.storage.local.set({
+      firstTimeNoticeAck: true,
+      notesById: [],
+      open: "always",
+    });
+  });
+
+  await page.goto(HOST_URL);
+  await expect(
+    page.locator("floating-web-notes .NewWholeWebsiteNote"),
+  ).toBeVisible();
+
+  const pages = [page];
+  for (let index = 0; index < 1; index += 1) {
+    const nextPage = await context.newPage();
+    await nextPage.goto(HOST_URL);
+    await expect(
+      nextPage.locator("floating-web-notes .NewWholeWebsiteNote"),
+    ).toBeVisible();
+    pages.push(nextPage);
+  }
+
+  await Promise.all(
+    pages.map((currentPage) =>
+      currentPage.locator("floating-web-notes .NewWholeWebsiteNote").click(),
+    ),
+  );
+
+  await expect
+    .poll(async () => {
+      return serviceWorker.evaluate(async (expectedNoteCount) => {
+        const storedIndex = await chrome.storage.local.get("notesById");
+        const notesById = Array.isArray(storedIndex.notesById)
+          ? storedIndex.notesById.filter(
+              (id): id is string => typeof id === "string",
+            )
+          : [];
+        const notes = await chrome.storage.local.get(notesById);
+        return (
+          notesById.length === expectedNoteCount &&
+          notesById.every((id) => {
+            const note = notes[id];
+            return (
+              typeof note === "object" &&
+              note !== null &&
+              "id" in note &&
+              note.id === id
+            );
+          })
+        );
+      }, pages.length);
+    })
+    .toBe(true);
+
+  const settledStorage = await serviceWorker.evaluate(async () => {
+    const storedIndex = await chrome.storage.local.get("notesById");
+    const notesById = Array.isArray(storedIndex.notesById)
+      ? storedIndex.notesById.filter(
+          (id): id is string => typeof id === "string",
+        )
+      : [];
+    const notes = await chrome.storage.local.get(notesById);
+    return { notesById, notes };
+  });
+
+  expect(settledStorage.notesById).toHaveLength(pages.length);
+  expect(new Set(settledStorage.notesById).size).toBe(pages.length);
+  for (const id of settledStorage.notesById) {
+    expect(settledStorage.notes[id]).toMatchObject({ id });
+  }
+});
+
 test("the utility frame is visible on hover or active utility panels", async ({
   page,
 }) => {

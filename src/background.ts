@@ -3,6 +3,8 @@ import type {
   NotesExport,
   NotesImportMode,
   NotesImportResponse,
+  RuntimeMessageErrorPayload,
+  RuntimeMessageResponse,
   UrlState,
   Visibility,
 } from "./types";
@@ -11,25 +13,17 @@ const isMissingMessageReceiverError = (error: unknown) =>
   error instanceof Error &&
   error.message.includes("Receiving end does not exist");
 
-const checkHotkeyConflict = (cb?: (arg0: boolean) => unknown) => {
-  chrome.commands.getAll((commands) => {
-    let hotkeyConflict = false;
-    const missingHotkeys = [];
-
-    for (const { name, shortcut } of commands) {
-      if (shortcut === "") {
-        missingHotkeys.push(name);
-      }
-    }
-
-    hotkeyConflict = missingHotkeys.length > 0;
-
-    cb?.(hotkeyConflict);
-  });
+const checkHotkeyConflict = async () => {
+  const commands = await chrome.commands.getAll();
+  return commands.some(({ shortcut }) => shortcut === "");
 };
 
 const notesExportApp = "floating-web-notes" as const;
 const notesExportSchemaVersion = 1;
+const storageMutationLockName = "floating-web-notes:storage-mutation";
+
+const withStorageMutationLock = <T>(operation: () => Promise<T>): Promise<T> =>
+  navigator.locks.request(storageMutationLockName, operation);
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -125,381 +119,433 @@ const createUniqueNoteId = (id: string, usedIds: Set<string>) => {
 const importNotes = async (
   exportData: unknown,
   mode: NotesImportMode,
-): Promise<NotesImportResponse> => {
-  if (!isRecord(exportData)) {
-    return { ok: false, error: "Import file must be a JSON object." };
-  }
-
-  if (
-    exportData.app !== notesExportApp ||
-    exportData.schemaVersion !== notesExportSchemaVersion ||
-    !Array.isArray(exportData.notes)
-  ) {
-    return {
-      ok: false,
-      error: "This does not look like a Floating Web Notes export.",
-    };
-  }
-
-  const existingNotes = await getStoredNotes();
-  const existingUrlState = await getStoredUrlState();
-  const importedUrlState = sanitizeUrlState(exportData.urlState);
-  const existingNotesById = new Map(
-    existingNotes.map((note) => [note.id, note]),
-  );
-  const existingIds = new Set(existingNotes.map((note) => note.id));
-  const usedIds = mode === "merge" ? new Set(existingIds) : new Set<string>();
-  const importedNotes: Note[] = [];
-  let skipped = 0;
-
-  for (const candidate of exportData.notes) {
-    if (!isValidNote(candidate)) {
-      skipped += 1;
-      continue;
+): Promise<NotesImportResponse> =>
+  withStorageMutationLock(async () => {
+    if (!isRecord(exportData)) {
+      return { ok: false, error: "Import file must be a JSON object." };
     }
 
-    const existingNote = existingNotesById.get(candidate.id);
     if (
-      mode === "merge" &&
-      existingNote &&
-      sameNoteContent(existingNote, candidate)
+      exportData.app !== notesExportApp ||
+      exportData.schemaVersion !== notesExportSchemaVersion ||
+      !Array.isArray(exportData.notes)
     ) {
-      skipped += 1;
-      continue;
+      return {
+        ok: false,
+        error: "This does not look like a Floating Web Notes export.",
+      };
     }
 
-    const id = createUniqueNoteId(candidate.id, usedIds);
-    importedNotes.push({
-      id,
-      pattern: candidate.pattern,
-      text: candidate.text,
-    });
+    const existingNotes = await getStoredNotes();
+    const existingUrlState = await getStoredUrlState();
+    const importedUrlState = sanitizeUrlState(exportData.urlState);
+    const existingNotesById = new Map(
+      existingNotes.map((note) => [note.id, note]),
+    );
+    const existingIds = new Set(existingNotes.map((note) => note.id));
+    const usedIds = mode === "merge" ? new Set(existingIds) : new Set<string>();
+    const importedNotes: Note[] = [];
+    let skipped = 0;
+
+    for (const candidate of exportData.notes) {
+      if (!isValidNote(candidate)) {
+        skipped += 1;
+        continue;
+      }
+
+      const existingNote = existingNotesById.get(candidate.id);
+      if (
+        mode === "merge" &&
+        existingNote &&
+        sameNoteContent(existingNote, candidate)
+      ) {
+        skipped += 1;
+        continue;
+      }
+
+      const id = createUniqueNoteId(candidate.id, usedIds);
+      importedNotes.push({
+        id,
+        pattern: candidate.pattern,
+        text: candidate.text,
+      });
+    }
+
+    const nextNotes =
+      mode === "merge" ? [...existingNotes, ...importedNotes] : importedNotes;
+    const nextUrlState =
+      mode === "merge"
+        ? { ...existingUrlState, ...importedUrlState }
+        : importedUrlState;
+    const nextNoteIds = nextNotes.map((note) => note.id);
+    const storageUpdate: Record<string, unknown> = {
+      notesById: nextNoteIds,
+      urlState: nextUrlState,
+    };
+
+    for (const note of importedNotes) {
+      storageUpdate[note.id] = note;
+    }
+
+    await chrome.storage.local.set(storageUpdate);
+
+    if (mode === "replace" && existingIds.size) {
+      const retainedIds = new Set(nextNoteIds);
+      const obsoleteIds = [...existingIds].filter((id) => !retainedIds.has(id));
+      if (obsoleteIds.length) {
+        try {
+          await chrome.storage.local.remove(obsoleteIds);
+        } catch (error) {
+          console.warn(
+            "Could not remove obsolete imported note records",
+            error,
+          );
+        }
+      }
+    }
+
+    return {
+      ok: true,
+      result: {
+        imported: importedNotes.length,
+        skipped,
+        positionsImported: Object.keys(importedUrlState).length,
+        mode,
+      },
+    };
+  });
+
+class RuntimeRequestError extends Error {
+  readonly code: string;
+
+  constructor(code: string, message: string) {
+    super(message);
+    this.name = "RuntimeRequestError";
+    this.code = code;
+  }
+}
+
+type RuntimeMessage = Record<string, unknown> & { type: string };
+
+const parseRuntimeMessage = (message: unknown): RuntimeMessage => {
+  if (!isRecord(message) || typeof message.type !== "string") {
+    throw new RuntimeRequestError(
+      "INVALID_MESSAGE",
+      "Runtime messages must include a string type.",
+    );
   }
 
-  const nextNotes =
-    mode === "merge" ? [...existingNotes, ...importedNotes] : importedNotes;
-  const nextUrlState =
-    mode === "merge"
-      ? { ...existingUrlState, ...importedUrlState }
-      : importedUrlState;
-  const nextNoteIds = nextNotes.map((note) => note.id);
-  const storageUpdate: Record<string, unknown> = {
-    notesById: nextNoteIds,
-    urlState: nextUrlState,
-  };
+  return message as RuntimeMessage;
+};
 
-  for (const note of importedNotes) {
-    storageUpdate[note.id] = note;
+const requireString = (value: unknown, field: string) => {
+  if (typeof value !== "string") {
+    throw new RuntimeRequestError(
+      "INVALID_MESSAGE",
+      `${field} must be a string.`,
+    );
   }
 
-  if (mode === "replace" && existingIds.size) {
-    await chrome.storage.local.remove([...existingIds]);
+  return value;
+};
+
+const requireTabId = (sender: chrome.runtime.MessageSender) => {
+  if (typeof sender.tab?.id !== "number") {
+    throw new RuntimeRequestError(
+      "MISSING_TAB_ID",
+      "This request must come from a browser tab.",
+    );
   }
 
-  await chrome.storage.local.set(storageUpdate);
+  return sender.tab.id;
+};
+
+const requirePosition = (value: unknown) => {
+  if (!isValidPosition(value)) {
+    throw new RuntimeRequestError(
+      "INVALID_MESSAGE",
+      "position must contain finite x and y coordinates.",
+    );
+  }
+
+  return value;
+};
+
+const requireVisibility = (value: unknown) => {
+  if (value !== "visible" && value !== "hidden") {
+    throw new RuntimeRequestError(
+      "INVALID_MESSAGE",
+      "visibility must be either visible or hidden.",
+    );
+  }
+
+  return value;
+};
+
+const toRuntimeError = (error: unknown): RuntimeMessageErrorPayload => {
+  if (error instanceof RuntimeRequestError) {
+    return { code: error.code, message: error.message };
+  }
 
   return {
-    ok: true,
-    result: {
-      imported: importedNotes.length,
-      skipped,
-      positionsImported: Object.keys(importedUrlState).length,
-      mode,
-    },
+    code: "INTERNAL_ERROR",
+    message:
+      error instanceof Error
+        ? error.message
+        : "The extension background failed unexpectedly.",
   };
 };
 
-chrome.runtime.onInstalled.addListener((details) => {
-  if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
-    checkHotkeyConflict();
+const handleRuntimeMessage = async (
+  message: RuntimeMessage,
+  sender: chrome.runtime.MessageSender,
+): Promise<unknown> => {
+  switch (message.type) {
+    case "checkHotkeyConflict":
+      return checkHotkeyConflict();
+    case "getHotkeys":
+      return chrome.commands.getAll();
+    case "openExtensionPage":
+      await chrome.tabs.create({ url: "chrome://extensions/shortcuts" });
+      return true;
+    case "reloadExtension":
+      return true;
+    case "getVisibility": {
+      const tabId = requireTabId(sender);
+      const { visibility }: { visibility?: Visibility } =
+        await chrome.storage.session.get("visibility");
+      return visibility?.[tabId];
+    }
+    case "setVisibility": {
+      const tabId = requireTabId(sender);
+      const value = requireVisibility(message.value);
+      await withStorageMutationLock(async () => {
+        const { visibility }: { visibility?: Visibility } =
+          await chrome.storage.session.get("visibility");
+        await chrome.storage.session.set({
+          visibility: { ...visibility, [tabId]: value },
+        });
+      });
+      return true;
+    }
+    case "getOpenDefault": {
+      const { open } = await chrome.storage.local.get("open");
+      return open;
+    }
+    case "setOpenDefault":
+      await chrome.storage.local.set({ open: message.value });
+      return true;
+    case "getTheme": {
+      const { theme } = await chrome.storage.local.get("theme");
+      return theme;
+    }
+    case "setTheme":
+      await chrome.storage.local.set({ theme: message.theme });
+      return true;
+    case "getFirstTimeNoticeAck": {
+      const { firstTimeNoticeAck }: { firstTimeNoticeAck?: boolean } =
+        await chrome.storage.local.get("firstTimeNoticeAck");
+      return firstTimeNoticeAck || false;
+    }
+    case "getDragHandleDiscovered": {
+      const { dragHandleDiscovered } = await chrome.storage.local.get(
+        "dragHandleDiscovered",
+      );
+      return Boolean(dragHandleDiscovered);
+    }
+    case "setDragHandleDiscovered":
+      await chrome.storage.local.set({
+        dragHandleDiscovered: Boolean(message.value),
+      });
+      return true;
+    case "setFirstTimeNoticeAck":
+      await chrome.storage.local.set({
+        firstTimeNoticeAck: Boolean(message.value),
+      });
+      return true;
+    case "getNotesById":
+      return getStoredNoteIds();
+    case "getAllNotes": {
+      const ids = await getStoredNoteIds();
+      const notes = await chrome.storage.local.get(ids);
+      return Object.values(notes);
+    }
+    case "exportNotes":
+      return withStorageMutationLock(createNotesExport);
+    case "importNotes": {
+      const mode = message.mode === "replace" ? "replace" : "merge";
+      return importNotes(message.exportData, mode);
+    }
+    case "getNote": {
+      const id = requireString(message.id, "id");
+      const result = await chrome.storage.local.get(id);
+      return result[id];
+    }
+    case "setNote": {
+      const id = requireString(message.id, "id");
+      const pattern = requireString(message.pattern, "pattern");
+      const text = requireString(message.text, "text");
+      await withStorageMutationLock(async () => {
+        const ids = await getStoredNoteIds();
+        await chrome.storage.local.set({
+          [id]: { id, pattern, text },
+          notesById: ids.includes(id) ? ids : [...ids, id],
+        });
+      });
+      return true;
+    }
+    case "removeNote": {
+      const id = requireString(message.id, "id");
+      await withStorageMutationLock(async () => {
+        const ids = await getStoredNoteIds();
+        await chrome.storage.local.set({
+          notesById: ids.filter((storedId) => storedId !== id),
+        });
+        try {
+          await chrome.storage.local.remove(id);
+        } catch (error) {
+          console.warn("Could not remove an unindexed note record", error);
+        }
+      });
+      return true;
+    }
+    case "getPosition": {
+      const url = requireString(message.url, "url");
+      const { urlState }: { urlState?: UrlState } =
+        await chrome.storage.local.get("urlState");
+      return urlState?.[url]?.position;
+    }
+    case "setPosition": {
+      const url = requireString(message.url, "url");
+      const position = requirePosition(message.position);
+      await withStorageMutationLock(async () => {
+        const { urlState }: { urlState?: UrlState } =
+          await chrome.storage.local.get("urlState");
+        await chrome.storage.local.set({
+          urlState: { ...urlState, [url]: { position } },
+        });
+      });
+      return true;
+    }
+    case "removePosition": {
+      const url = requireString(message.url, "url");
+      await withStorageMutationLock(async () => {
+        const { urlState }: { urlState?: UrlState } =
+          await chrome.storage.local.get("urlState");
+        const nextUrlState = { ...urlState };
+        delete nextUrlState[url];
+        await chrome.storage.local.set({ urlState: nextUrlState });
+      });
+      return true;
+    }
+    case "getPreviousVersion": {
+      const { previousVersion } =
+        await chrome.storage.local.get("previousVersion");
+      return previousVersion || null;
+    }
+    case "setPreviousVersion":
+      await chrome.storage.local.set({
+        previousVersion: String(message.value ?? ""),
+      });
+      return true;
+    default:
+      throw new RuntimeRequestError(
+        "UNKNOWN_MESSAGE",
+        `Unknown runtime message type: ${message.type}`,
+      );
   }
+};
 
-  if (
-    details.reason === chrome.runtime.OnInstalledReason.UPDATE &&
-    details.previousVersion
-  ) {
-    chrome.storage.local.set({ previousVersion: details.previousVersion });
+const respondToRuntimeMessage = async (
+  rawMessage: unknown,
+  sender: chrome.runtime.MessageSender,
+  sendResponse: (response: RuntimeMessageResponse<unknown>) => void,
+) => {
+  try {
+    const message = parseRuntimeMessage(rawMessage);
+    const data = await handleRuntimeMessage(message, sender);
+    sendResponse({ ok: true, data });
+
+    if (message.type === "reloadExtension") {
+      chrome.runtime.reload();
+    }
+  } catch (error) {
+    const runtimeError = toRuntimeError(error);
+    if (runtimeError.code === "INTERNAL_ERROR") {
+      console.error("Runtime message failed", error);
+    }
+    sendResponse({ ok: false, error: runtimeError });
   }
+};
+
+const handleInstalled = async (details: chrome.runtime.InstalledDetails) => {
+  try {
+    if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+      await checkHotkeyConflict();
+    }
+
+    if (
+      details.reason === chrome.runtime.OnInstalledReason.UPDATE &&
+      details.previousVersion
+    ) {
+      await chrome.storage.local.set({
+        previousVersion: details.previousVersion,
+      });
+    }
+  } catch (error) {
+    console.error("Extension installation handler failed", error);
+  }
+};
+
+const handleActionClick = async (activeTab: chrome.tabs.Tab) => {
+  const tabId = activeTab.id;
+  if (typeof tabId !== "number") return;
+
+  try {
+    await withStorageMutationLock(async () => {
+      const { visibility }: { visibility?: Visibility } =
+        await chrome.storage.session.get("visibility");
+
+      let currentVisibility = visibility?.[tabId];
+      if (!currentVisibility) {
+        const active = await chrome.tabs.sendMessage(tabId, {
+          type: "getActive",
+        });
+        if (typeof active !== "boolean") {
+          throw new Error(
+            "The content script did not return its active state.",
+          );
+        }
+        currentVisibility = active ? "visible" : "hidden";
+      }
+
+      const nextVisibility =
+        currentVisibility === "visible" ? "hidden" : "visible";
+      await chrome.storage.session.set({
+        visibility: { ...visibility, [tabId]: nextVisibility },
+      });
+      await chrome.tabs.sendMessage(tabId, {
+        type: "setActiveFromBackground",
+        active: nextVisibility === "visible",
+      });
+    });
+  } catch (error) {
+    if (!isMissingMessageReceiverError(error)) {
+      console.error("Extension action click failed", error);
+    }
+  }
+};
+
+chrome.runtime.onInstalled.addListener((details) => {
+  void handleInstalled(details);
 });
 
 // Open the Floating Web Notes window when the extension icon is clicked
 chrome.action.onClicked.addListener((activeTab) => {
-  const tabId = activeTab.id;
-  if (!tabId) return;
-
-  chrome.storage.session
-    .get("visibility")
-    .then(({ visibility }: { visibility?: Visibility }) => {
-      if (visibility && visibility[tabId]) {
-        chrome.storage.session.set({
-          visibility: {
-            ...visibility,
-            [tabId]: visibility[tabId] === "visible" ? "hidden" : "visible",
-          },
-        });
-      }
-      chrome.tabs
-        .sendMessage(tabId, {
-          type: "toggleActive",
-        })
-        .catch((error: unknown) => {
-          if (!isMissingMessageReceiverError(error)) {
-            console.error(error);
-          }
-        });
-    });
+  void handleActionClick(activeTab);
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "checkHotkeyConflict") {
-    checkHotkeyConflict(sendResponse);
-    return true;
-  }
-
-  if (message.type === "getHotkeys") {
-    chrome.commands.getAll(sendResponse);
-    return true;
-  }
-
-  if (message.type === "openExtensionPage") {
-    chrome.tabs
-      .create({ url: "chrome://extensions/shortcuts" })
-      .then(() => sendResponse(true));
-    return true;
-  }
-
-  if (message.type === "reloadExtension") {
-    chrome.runtime.reload();
-    sendResponse(true);
-    return true;
-  }
-
-  if (message.type === "getVisibility") {
-    chrome.storage.session
-      .get("visibility")
-      .then(({ visibility }: { visibility?: Visibility }) => {
-        sendResponse(
-          visibility && sender.tab?.id && visibility[sender.tab?.id],
-        );
-      });
-    return true;
-  }
-
-  if (message.type === "setVisibility") {
-    chrome.storage.session
-      .get("visibility")
-      .then(({ visibility }: { visibility?: Visibility }) => {
-        if (!sender.tab?.id) return;
-        const next = visibility
-          ? { ...visibility, [sender.tab.id]: message.value }
-          : { [sender.tab.id]: message.value };
-        chrome.storage.session
-          .set({ visibility: next })
-          .then(() => sendResponse(true));
-      });
-    return true;
-  }
-
-  if (message.type === "getOpenDefault") {
-    chrome.storage.local.get("open").then(({ open }) => {
-      sendResponse(open);
-    });
-    return true;
-  }
-
-  if (message.type === "setOpenDefault") {
-    chrome.storage.local.set({ open: message.value }).then(() => {
-      sendResponse(true);
-    });
-    return true;
-  }
-
-  if (message.type === "getTheme") {
-    chrome.storage.local.get("theme").then(({ theme }) => {
-      sendResponse(theme);
-    });
-    return true;
-  }
-
-  if (message.type === "setTheme") {
-    chrome.storage.local.set({ theme: message.theme }).then(() => {
-      sendResponse(true);
-    });
-    return true;
-  }
-
-  if (message.type === "getFirstTimeNoticeAck") {
-    chrome.storage.local
-      .get("firstTimeNoticeAck")
-      .then(({ firstTimeNoticeAck }: { firstTimeNoticeAck?: boolean }) => {
-        sendResponse(firstTimeNoticeAck || false);
-      });
-    return true;
-  }
-
-  // Drag handle discovery flag
-  if (message.type === "getDragHandleDiscovered") {
-    chrome.storage.local
-      .get("dragHandleDiscovered")
-      .then(({ dragHandleDiscovered }) => {
-        sendResponse(Boolean(dragHandleDiscovered));
-      });
-    return true;
-  }
-
-  if (message.type === "setDragHandleDiscovered") {
-    chrome.storage.local
-      .set({ dragHandleDiscovered: Boolean(message.value) })
-      .then(() => sendResponse(true));
-    return true;
-  }
-
-  if (message.type === "setFirstTimeNoticeAck") {
-    chrome.storage.local.set({ firstTimeNoticeAck: message.value }).then(() => {
-      sendResponse(true);
-    });
-    return true;
-  }
-
-  if (message.type === "getNotesById") {
-    chrome.storage.local.get("notesById").then(({ notesById }) => {
-      sendResponse(notesById || []);
-    });
-    return true;
-  }
-
-  if (message.type === "getAllNotes") {
-    chrome.storage.local.get("notesById").then(({ notesById }) => {
-      chrome.storage.local.get(notesById || []).then((notes) => {
-        sendResponse(Object.values(notes));
-      });
-    });
-    return true;
-  }
-
-  if (message.type === "exportNotes") {
-    createNotesExport().then(sendResponse);
-    return true;
-  }
-
-  if (message.type === "importNotes") {
-    const mode = message.mode === "replace" ? "replace" : "merge";
-    importNotes(message.exportData, mode).then(sendResponse);
-    return true;
-  }
-
-  if (message.type === "getNote") {
-    chrome.storage.local.get(message.id).then((result) => {
-      sendResponse(result[message.id]);
-    });
-    return true;
-  }
-
-  if (message.type === "setNotesById") {
-    chrome.storage.local.set({ notesById: message.notesById }).then(() => {
-      sendResponse(true);
-    });
-    return true;
-  }
-
-  if (message.type === "setNote") {
-    // Persist note and ensure notesById includes the id (idempotent)
-    chrome.storage.local.get("notesById").then(({ notesById }) => {
-      const ids: string[] = Array.isArray(notesById) ? notesById : [];
-      const hasId = ids.includes(message.id);
-      const newIds = hasId ? ids : [...ids, message.id];
-
-      chrome.storage.local
-        .set({
-          [message.id]: {
-            id: message.id,
-            pattern: message.pattern,
-            text: message.text,
-          },
-          notesById: newIds,
-        })
-        .then(() => {
-          sendResponse({ ok: true, id: message.id });
-        });
-    });
-    return true;
-  }
-
-  if (message.type === "removeNote") {
-    // Remove note id from index and delete the note entry
-    chrome.storage.local.get("notesById").then(({ notesById }) => {
-      const ids: string[] = Array.isArray(notesById) ? notesById : [];
-      const newIds = ids.filter((id) => id !== message.id);
-
-      chrome.storage.local.set({ notesById: newIds }).then(() => {
-        chrome.storage.local.remove(message.id).then(() => {
-          sendResponse(true);
-        });
-      });
-    });
-    return true;
-  }
-
-  if (message.type === "getPosition") {
-    chrome.storage.local
-      .get("urlState")
-      .then(({ urlState }: { urlState?: UrlState }) => {
-        const position = urlState?.[message.url]?.position;
-        sendResponse(position);
-      });
-
-    return true;
-  }
-
-  if (message.type === "setPosition") {
-    chrome.storage.local
-      .get("urlState")
-      .then(({ urlState }: { urlState?: UrlState }) => {
-        chrome.storage.local
-          .set({
-            urlState: {
-              ...urlState,
-              [message.url]: { position: message.position },
-            },
-          })
-          .then(() => {
-            sendResponse(true);
-          });
-      });
-
-    return true;
-  }
-
-  if (message.type === "removePosition") {
-    chrome.storage.local
-      .get("urlState")
-      .then(({ urlState }: { urlState?: UrlState }) => {
-        const newUrlState = { ...urlState };
-        delete newUrlState[message.url];
-        chrome.storage.local
-          .set({
-            urlState: newUrlState,
-          })
-          .then(() => {
-            sendResponse(true);
-          });
-      });
-
-    return true;
-  }
-
-  if (message.type === "getPreviousVersion") {
-    chrome.storage.local.get("previousVersion").then(({ previousVersion }) => {
-      sendResponse(previousVersion || null);
-    });
-    return true;
-  }
-
-  if (message.type === "setPreviousVersion") {
-    const value = String(message.value ?? "");
-    chrome.storage.local
-      .set({ previousVersion: value })
-      .then(() => sendResponse(true));
-    return true;
-  }
+  void respondToRuntimeMessage(message, sender, sendResponse);
+  return true;
 });

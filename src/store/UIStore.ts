@@ -22,8 +22,8 @@ type UIState = {
   setScreenshotMode: (mode: boolean) => void;
   position: Position;
   hasCustomPosition: boolean;
-  setPosition: (position: Position) => void;
-  restorePosition: (url: string) => void;
+  setPosition: (position: Position) => Promise<void>;
+  restorePosition: (url: string) => Promise<void>;
   dragHandleDiscovered: boolean;
   setDragHandleDiscovered: (value: boolean) => Promise<void>;
   markDragHandleDiscovered: () => Promise<void>;
@@ -44,8 +44,8 @@ export const useUIStore = create<UIState>((set) => ({
   /* -------------------------------------------------------------------------- */
   firstTimeNoticeAck: true, // Default value
   closeFirstTimeNotice: async () => {
-    set({ firstTimeNoticeAck: true });
     await Api.set.firstTimeNoticeAck(true);
+    set({ firstTimeNoticeAck: true });
   },
 
   /* -------------------------------------------------------------------------- */
@@ -53,7 +53,7 @@ export const useUIStore = create<UIState>((set) => ({
   /* -------------------------------------------------------------------------- */
   active: false,
   setActive: async (active: boolean) => {
-    Api.set.visibility(active ? "visible" : "hidden");
+    await Api.set.visibility(active ? "visible" : "hidden");
     set({ active });
   },
 
@@ -85,12 +85,12 @@ export const useUIStore = create<UIState>((set) => ({
   /* -------------------------------------------------------------------------- */
   position: defaultPosition,
   hasCustomPosition: false,
-  setPosition: (position: Position) => {
-    Api.set.position(cleanURL(), position);
+  setPosition: async (position: Position) => {
+    await Api.set.position(cleanURL(), position);
     set({ position, hasCustomPosition: true });
   },
-  restorePosition: (url: string) => {
-    Api.remove.position(cleanURL(url));
+  restorePosition: async (url: string) => {
+    await Api.remove.position(cleanURL(url));
     set({ position: defaultPosition, hasCustomPosition: false });
   },
 
@@ -157,10 +157,23 @@ export const useUIStore = create<UIState>((set) => ({
 
     // Setup chrome message listener for toggle (only once)
     if (!uiToggleListenerSetup) {
-      chrome.runtime.onMessage.addListener((msg) => {
+      chrome.runtime.onMessage.addListener(async (msg) => {
+        const state = useUIStore.getState();
+
+        if (msg.type === "getActive") {
+          return state.active;
+        }
+
+        if (
+          msg.type === "setActiveFromBackground" &&
+          typeof msg.active === "boolean"
+        ) {
+          useUIStore.setState({ active: msg.active });
+          return true;
+        }
+
         if (msg.type === "toggleActive") {
-          const state = useUIStore.getState();
-          state.setActive(!state.active);
+          await state.setActive(!state.active);
         }
       });
       uiToggleListenerSetup = true;

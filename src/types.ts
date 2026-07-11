@@ -43,3 +43,12 @@ export type UrlState = {
 };
 
 export type Visibility = { [key: number]: "visible" | "hidden" };
+
+export type RuntimeMessageErrorPayload = {
+  code: string;
+  message: string;
+};
+
+export type RuntimeMessageResponse<T> =
+  | { ok: true; data: T }
+  | { ok: false; error: RuntimeMessageErrorPayload };

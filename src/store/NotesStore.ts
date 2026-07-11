@@ -12,7 +12,7 @@ import { urlMatchesPattern } from "../utils/urls";
 type NotesState = {
   notes: Note[];
   setNotes: (notes: Note[]) => void;
-  setNote: (note: Note) => void;
+  setNote: (note: Note) => Promise<void>;
   getNote: (id: string) => Promise<Note>;
   removeNote: (id: string) => Promise<void>;
   exportNotes: () => Promise<NotesExport>;

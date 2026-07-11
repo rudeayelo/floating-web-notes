@@ -5,6 +5,7 @@ import { Notes } from "./components/Notes";
 import { UtilityFrame } from "./components/UtilityFrame";
 import { useNotesStore, useSettingsStore, useUIStore } from "./store";
 import styles from "./styles.css?inline";
+import type { Position } from "./types";
 import { setupDebugSubscriptions } from "./utils/debugSubscriptions";
 import type { ResolvedTheme } from "./utils/theme";
 import { getResolvedTheme, watchSystemTheme } from "./utils/theme";
@@ -25,6 +26,14 @@ export const App = () => {
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() =>
     getResolvedTheme(theme),
   );
+
+  const persistPosition = async (nextPosition: Position) => {
+    try {
+      await setPosition(nextPosition);
+    } catch (error) {
+      console.error("Failed to save the panel position", error);
+    }
+  };
 
   useEffect(() => {
     // Setup debug subscriptions once
@@ -76,7 +85,7 @@ export const App = () => {
             const nextPosition = hasCustomPosition
               ? { x: d.x, y: d.y }
               : { x: d.x + window.scrollX, y: d.y + window.scrollY };
-            setPosition(nextPosition);
+            void persistPosition(nextPosition);
           }}
           className="FloatingWindows"
           data-utility-active={activeUtilityPanel !== null}
