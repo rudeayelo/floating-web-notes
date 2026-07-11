@@ -1,6 +1,6 @@
 # Chrome Web Store Listing — Floating Web Notes
 
-> Last Updated: 2026-07-11
+> Last Updated: 2026-07-12
 
 ## Store Listing
 
@@ -127,8 +127,8 @@ The hosted policy should state that notes, page addresses, panel positions, and 
 
 | Version | Date | Changes | Status |
 |---------|------|---------|--------|
+| 0.3.4 | 2026-07-12 | Prevents concurrent tabs from losing note and position updates, surfaces persistence errors reliably, removes a completed legacy migration, corrects icon dimensions, removes an unused permission, and declares Chrome 102 as the minimum supported version. | Draft |
 | 0.3.3 | 2026-07-03 | Current packaged release. | Confirm in dashboard |
-| Next patch | 2026-07-11 | Removes the completed legacy note migration, corrects icon dimensions, removes an unused permission, and declares Chrome 102 as the minimum supported version. | Draft |
 
 ## Review Notes
 
