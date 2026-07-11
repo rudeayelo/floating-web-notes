@@ -88,6 +88,6 @@ export const useNotesStore = create<NotesState>((set) => ({
   /* -------------------------------------------------------------------------- */
   updateNotes: async () => {
     const currentNotes = await getCurrentWebNotes();
-    set({ notes: currentNotes });
+    set({ notes: currentNotes, notesKey: Date.now() });
   },
 }));

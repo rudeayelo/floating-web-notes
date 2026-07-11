@@ -1,5 +1,6 @@
 import type {
   Command,
+  ContentStartupState,
   Note,
   NotesExport,
   NotesImportMode,
@@ -72,6 +73,9 @@ const sendCommand = async (message: {
 
 export const Api = {
   get: {
+    contentStartupState: (url: string): Promise<ContentStartupState> => {
+      return sendMessage({ type: "getContentStartupState", url });
+    },
     previousVersion: (): Promise<string | null> => {
       return sendMessage({ type: "getPreviousVersion" });
     },

@@ -80,7 +80,7 @@ export const Alerts = () => {
           </button>
         </div>
       ) : null}
-      {!firstTimeNoticeAck && !hotkeyConflict && !!hotkey ? (
+      {!firstTimeNoticeAck && !hotkeyConflict && hotkey ? (
         <div className="Alert FirstTimeGuide">
           <p>
             <strong>Floating Web Notes</strong> is invoked by pressing the{" "}

@@ -44,6 +44,10 @@ export type UrlState = {
 
 export type Visibility = { [key: number]: "visible" | "hidden" };
 
+export type ContentStartupState = {
+  active: boolean;
+};
+
 export type RuntimeMessageErrorPayload = {
   code: string;
   message: string;

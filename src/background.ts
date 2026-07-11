@@ -1,13 +1,16 @@
 import type {
+  ContentStartupState,
   Note,
   NotesExport,
   NotesImportMode,
   NotesImportResponse,
+  OpenOptions,
   RuntimeMessageErrorPayload,
   RuntimeMessageResponse,
   UrlState,
   Visibility,
 } from "./types";
+import { urlMatchesPattern } from "./utils/urls";
 
 const isMissingMessageReceiverError = (error: unknown) =>
   error instanceof Error &&
@@ -282,6 +285,46 @@ const requireVisibility = (value: unknown) => {
   return value;
 };
 
+const resolveOpenDefault = (value: unknown): OpenOptions => {
+  if (value === "always" || value === "never" || value === "with-notes") {
+    return value;
+  }
+
+  return "with-notes";
+};
+
+const getContentStartupState = async (
+  url: string,
+  sender: chrome.runtime.MessageSender,
+): Promise<ContentStartupState> => {
+  const tabId = requireTabId(sender);
+  const [localSettings, sessionState, notes] = await Promise.all([
+    chrome.storage.local.get(["open", "firstTimeNoticeAck"]),
+    chrome.storage.session.get("visibility") as Promise<{
+      visibility?: Visibility;
+    }>,
+    getStoredNotes(),
+  ]);
+
+  const open = resolveOpenDefault(localSettings.open);
+  const initialVisibility = sessionState.visibility?.[tabId];
+  const hasCurrentNotes = notes.some((note) =>
+    urlMatchesPattern({ url, pattern: note.pattern }),
+  );
+
+  if (!localSettings.firstTimeNoticeAck) {
+    return { active: true };
+  }
+
+  const active = !(
+    (open === "never" && initialVisibility !== "visible") ||
+    (open === "with-notes" && !hasCurrentNotes) ||
+    initialVisibility === "hidden"
+  );
+
+  return { active };
+};
+
 const toRuntimeError = (error: unknown): RuntimeMessageErrorPayload => {
   if (error instanceof RuntimeRequestError) {
     return { code: error.code, message: error.message };
@@ -301,6 +344,8 @@ const handleRuntimeMessage = async (
   sender: chrome.runtime.MessageSender,
 ): Promise<unknown> => {
   switch (message.type) {
+    case "getContentStartupState":
+      return getContentStartupState(requireString(message.url, "url"), sender);
     case "checkHotkeyConflict":
       return checkHotkeyConflict();
     case "getHotkeys":

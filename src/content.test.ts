@@ -97,7 +97,17 @@ const togglePanelFromExtension = async (page: Page) => {
       throw new Error("Active tab not found");
     }
 
-    await chrome.tabs.sendMessage(tab.id, { type: "toggleActive" });
+    const active = await chrome.tabs.sendMessage(tab.id, {
+      type: "getActive",
+    });
+    if (typeof active !== "boolean") {
+      throw new Error("Content loader did not return its active state");
+    }
+
+    await chrome.tabs.sendMessage(tab.id, {
+      type: "setActiveFromBackground",
+      active: !active,
+    });
   });
 };
 
@@ -112,6 +122,40 @@ const revealUtilityFrame = async (page: Page) => {
 test("the main window renders successfully", async ({ page }) => {
   await page.goto(HOST_URL);
   await expect(page.locator("floating-web-notes #root")).toHaveCount(1);
+});
+
+test("defers the full UI until a hidden panel is activated", async ({
+  page,
+  context,
+}) => {
+  const serviceWorker = await getServiceWorker(context);
+  await serviceWorker.evaluate(async () => {
+    await chrome.storage.local.set({
+      firstTimeNoticeAck: true,
+      notesById: [],
+      open: "never",
+    });
+  });
+
+  await page.goto(HOST_URL);
+
+  await expect
+    .poll(async () => {
+      return serviceWorker.evaluate(async () => {
+        const [tab] = await chrome.tabs.query({
+          active: true,
+          currentWindow: true,
+        });
+        if (!tab?.id) return null;
+        return chrome.tabs.sendMessage(tab.id, { type: "getActive" });
+      });
+    })
+    .toBe(false);
+  await expect(page.locator("floating-web-notes")).toHaveCount(0);
+
+  await togglePanelFromExtension(page);
+
+  await expect(page.locator("floating-web-notes .Container")).toBeVisible();
 });
 
 test("concurrent note creation keeps every note indexed", async ({

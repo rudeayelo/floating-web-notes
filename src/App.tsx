@@ -3,6 +3,7 @@ import { Rnd } from "react-rnd";
 import { Help } from "./components/Help";
 import { Notes } from "./components/Notes";
 import { UtilityFrame } from "./components/UtilityFrame";
+import fontFaceStyles from "./font-face.css?inline";
 import { useNotesStore, useSettingsStore, useUIStore } from "./store";
 import styles from "./styles.css?inline";
 import type { Position } from "./types";
@@ -10,7 +11,11 @@ import { setupDebugSubscriptions } from "./utils/debugSubscriptions";
 import type { ResolvedTheme } from "./utils/theme";
 import { getResolvedTheme, watchSystemTheme } from "./utils/theme";
 
-export const App = () => {
+type AppProps = {
+  getActiveOverride?: () => boolean | undefined;
+};
+
+export const App = ({ getActiveOverride }: AppProps) => {
   const active = useUIStore((state) => state.active);
   const activeView = useUIStore((state) => state.activeView);
   const activeUtilityPanel = useUIStore((state) => state.activeUtilityPanel);
@@ -41,10 +46,26 @@ export const App = () => {
   }, []);
 
   useEffect(() => {
-    initializeUIStore();
-    initializeSettingsStore();
     setRootRef(rootRef);
-  }, [initializeUIStore, initializeSettingsStore, setRootRef]);
+
+    const initialize = async () => {
+      try {
+        await Promise.all([
+          initializeUIStore(getActiveOverride),
+          initializeSettingsStore(),
+        ]);
+      } catch (error) {
+        console.error("Failed to initialize Floating Web Notes", error);
+      }
+    };
+
+    void initialize();
+  }, [
+    getActiveOverride,
+    initializeUIStore,
+    initializeSettingsStore,
+    setRootRef,
+  ]);
 
   useEffect(() => {
     if (theme !== "system") {
@@ -63,7 +84,10 @@ export const App = () => {
 
   return active ? (
     <>
-      <style type="text/css">{styles}</style>
+      <style type="text/css">
+        {fontFaceStyles}
+        {styles}
+      </style>
 
       <div
         id="root"

@@ -34,7 +34,7 @@ export default defineManifest(async (env) => ({
   content_scripts: [
     {
       matches: ["http://*/*", "https://*/*", "http://*:*/*", "https://*:*/*"],
-      js: ["src/content.tsx"],
+      js: ["src/content-loader.ts"],
     },
   ],
   background: {

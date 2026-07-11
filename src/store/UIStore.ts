@@ -5,9 +5,6 @@ import type { Position } from "../types";
 import { getCurrentWebNotes } from "../utils/getCurrentWebNotes";
 import { cleanURL } from "../utils/urls";
 
-// Guard to ensure the runtime message listener is only set once
-let uiToggleListenerSetup = false;
-
 type UIState = {
   firstTimeNoticeAck: boolean;
   closeFirstTimeNotice: () => Promise<void>;
@@ -30,7 +27,7 @@ type UIState = {
   // Root ref for the container with id "root"
   rootRef: RefObject<HTMLDivElement | null> | null;
   setRootRef: (ref: RefObject<HTMLDivElement | null>) => void;
-  initialize: () => Promise<void>;
+  initialize: (getActiveOverride?: () => boolean | undefined) => Promise<void>;
 };
 
 const defaultPosition: Position =
@@ -118,65 +115,50 @@ export const useUIStore = create<UIState>((set) => ({
   /* -------------------------------------------------------------------------- */
   /*                               Initialization                               */
   /* -------------------------------------------------------------------------- */
-  initialize: async () => {
-    const customPosition = await Api.get.position(
-      cleanURL(window.location.href),
-    );
-    const dragHandleDiscovered = await Api.get.dragHandleDiscovered();
-    const firstTimeNoticeAck = await Api.get.firstTimeNoticeAck();
+  initialize: async (getActiveOverride) => {
+    const [customPosition, dragHandleDiscovered, firstTimeNoticeAck] =
+      await Promise.all([
+        Api.get.position(cleanURL(window.location.href)),
+        Api.get.dragHandleDiscovered(),
+        Api.get.firstTimeNoticeAck(),
+      ]);
 
-    // Compute initial active value based on settings and current notes
-    const [openDefault, initialVisibility, currentNotes] = await Promise.all([
-      Api.get.openDefault(),
-      Api.get.visibility(),
-      getCurrentWebNotes(),
-    ]);
-
+    const initialActiveOverride = getActiveOverride?.();
     let isActive = false;
-    const open = openDefault || "with-notes";
-
-    if (!firstTimeNoticeAck) {
-      isActive = true;
-    } else if (
-      (open === "never" && initialVisibility !== "visible") ||
-      (open === "with-notes" && !currentNotes.length) ||
-      initialVisibility === "hidden"
-    ) {
-      isActive = false;
+    if (typeof initialActiveOverride === "boolean") {
+      isActive = initialActiveOverride;
     } else {
-      isActive = true;
+      const [openDefault, initialVisibility, currentNotes] = await Promise.all([
+        Api.get.openDefault(),
+        Api.get.visibility(),
+        getCurrentWebNotes(),
+      ]);
+      const open = openDefault || "with-notes";
+
+      if (!firstTimeNoticeAck) {
+        isActive = true;
+      } else if (
+        (open === "never" && initialVisibility !== "visible") ||
+        (open === "with-notes" && !currentNotes.length) ||
+        initialVisibility === "hidden"
+      ) {
+        isActive = false;
+      } else {
+        isActive = true;
+      }
     }
+
+    const latestActiveOverride = getActiveOverride?.();
 
     set({
       firstTimeNoticeAck,
       dragHandleDiscovered,
-      active: import.meta.env.MODE === "screenshot" ? true : isActive,
+      active:
+        import.meta.env.MODE === "screenshot"
+          ? true
+          : (latestActiveOverride ?? isActive),
       hasCustomPosition: !!customPosition,
       position: customPosition || defaultPosition,
     });
-
-    // Setup chrome message listener for toggle (only once)
-    if (!uiToggleListenerSetup) {
-      chrome.runtime.onMessage.addListener(async (msg) => {
-        const state = useUIStore.getState();
-
-        if (msg.type === "getActive") {
-          return state.active;
-        }
-
-        if (
-          msg.type === "setActiveFromBackground" &&
-          typeof msg.active === "boolean"
-        ) {
-          useUIStore.setState({ active: msg.active });
-          return true;
-        }
-
-        if (msg.type === "toggleActive") {
-          await state.setActive(!state.active);
-        }
-      });
-      uiToggleListenerSetup = true;
-    }
   },
 }));
