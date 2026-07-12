@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.3.6](https://github.com/rudeayelo/floating-web-notes/compare/v0.3.5...v0.3.6) (2026-07-12)
+
+
+### Bug Fixes
+
+* refresh notes after SPA navigation ([b84c0c4](https://github.com/rudeayelo/floating-web-notes/commit/b84c0c4b2e2bf6fd7f8a5a4acfc9104c43653f63))
+
 ## [0.3.5](https://github.com/rudeayelo/floating-web-notes/compare/v0.3.4...v0.3.5) (2026-07-11)
 
 ## [0.3.4](https://github.com/rudeayelo/floating-web-notes/compare/v0.3.3...v0.3.4) (2026-07-11)

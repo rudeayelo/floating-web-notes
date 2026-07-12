@@ -128,7 +128,7 @@ The hosted policy should state that notes, page addresses, panel positions, and 
 
 | Version | Date | Changes | Status |
 |---------|------|---------|--------|
-| Next release | 2026-07-12 | Refreshes matching notes, visibility, and saved panel position when a website changes pathname without reloading, while continuing to ignore query strings and fragments. | Draft |
+| 0.3.6 | 2026-07-12 | Refreshes matching notes, visibility, and saved panel position when a website changes pathname without reloading, while continuing to ignore query strings and fragments. | Draft |
 | 0.3.5 | 2026-07-12 | Defers loading the notes interface on pages where the panel remains hidden, reducing browsing overhead without changing when notes appear. | Draft |
 | 0.3.4 | 2026-07-12 | Prevents concurrent tabs from losing note and position updates, surfaces persistence errors reliably, removes a completed legacy migration, corrects icon dimensions, removes an unused permission, and declares Chrome 102 as the minimum supported version. | Draft |
 | 0.3.3 | 2026-07-03 | Current packaged release. | Confirm in dashboard |
