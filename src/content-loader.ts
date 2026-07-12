@@ -1,4 +1,5 @@
 import { Api } from "./api";
+import { cleanURL } from "./utils/urls";
 
 type ContentModule = typeof import("./content");
 
@@ -8,6 +9,8 @@ let startupStatePromise:
   | ReturnType<typeof Api.get.contentStartupState>
   | undefined;
 let activeBeforeLoad: boolean | undefined;
+let currentPageKey = cleanURL(window.location.href);
+let pageNavigationRequestId = 0;
 
 const loadContent = async (active: boolean) => {
   if (!contentModulePromise) {
@@ -85,6 +88,45 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       sendResponse,
     );
   }
+});
+
+const isCurrentPageNavigation = (requestId: number, pageKey: string) => {
+  return (
+    requestId === pageNavigationRequestId &&
+    pageKey === currentPageKey &&
+    pageKey === cleanURL(window.location.href)
+  );
+};
+
+const synchronizePageNavigation = async () => {
+  const url = window.location.href;
+  const pageKey = cleanURL(url);
+  if (pageKey === currentPageKey) return;
+
+  currentPageKey = pageKey;
+  const requestId = ++pageNavigationRequestId;
+
+  try {
+    const { active } = await Api.get.contentStartupState(url);
+    if (!isCurrentPageNavigation(requestId, pageKey)) return;
+
+    activeBeforeLoad = active;
+    if (!active && !contentModulePromise) return;
+
+    const module = contentModule || (await loadContent(active));
+    if (!isCurrentPageNavigation(requestId, pageKey)) return;
+
+    await module.synchronizeFloatingWebNotes(url, active);
+  } catch (error) {
+    console.error(
+      "Failed to synchronize Floating Web Notes after navigation",
+      error,
+    );
+  }
+};
+
+window.navigation.addEventListener("currententrychange", () => {
+  void synchronizePageNavigation();
 });
 
 const initialize = async () => {

@@ -20,6 +20,7 @@ FEATURES
 • Create notes for one exact page, a whole website, or a custom URL pattern
 • Search and browse all saved notes
 • Move the notes panel and remember its position for each page
+• Refresh matching notes and panel position when a website changes pages without reloading
 • Choose when the panel opens and switch between light, dark, and system themes
 • Export notes to a backup file and import them by merging or replacing existing notes
 • Open or hide the panel from the toolbar or a configurable keyboard shortcut
@@ -127,6 +128,7 @@ The hosted policy should state that notes, page addresses, panel positions, and 
 
 | Version | Date | Changes | Status |
 |---------|------|---------|--------|
+| Next release | 2026-07-12 | Refreshes matching notes, visibility, and saved panel position when a website changes pathname without reloading, while continuing to ignore query strings and fragments. | Draft |
 | 0.3.5 | 2026-07-12 | Defers loading the notes interface on pages where the panel remains hidden, reducing browsing overhead without changing when notes appear. | Draft |
 | 0.3.4 | 2026-07-12 | Prevents concurrent tabs from losing note and position updates, surfaces persistence errors reliably, removes a completed legacy migration, corrects icon dimensions, removes an unused permission, and declares Chrome 102 as the minimum supported version. | Draft |
 | 0.3.3 | 2026-07-03 | Current packaged release. | Confirm in dashboard |

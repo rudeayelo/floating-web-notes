@@ -119,6 +119,20 @@ const revealUtilityFrame = async (page: Page) => {
   );
 };
 
+const expectPanelPosition = async (
+  page: Page,
+  expected: { x: number; y: number },
+) => {
+  await expect
+    .poll(async () => {
+      const box = await page
+        .locator("floating-web-notes .FloatingWindows")
+        .boundingBox();
+      return box ? { x: Math.round(box.x), y: Math.round(box.y) } : null;
+    })
+    .toEqual(expected);
+};
+
 test("the main window renders successfully", async ({ page }) => {
   await page.goto(HOST_URL);
   await expect(page.locator("floating-web-notes #root")).toHaveCount(1);
@@ -156,6 +170,182 @@ test("defers the full UI until a hidden panel is activated", async ({
   await togglePanelFromExtension(page);
 
   await expect(page.locator("floating-web-notes .Container")).toBeVisible();
+});
+
+test.describe("SPA pathname navigation", () => {
+  test("synchronizes notes and positions for history navigation", async ({
+    page,
+    context,
+  }) => {
+    const serviceWorker = await getServiceWorker(context);
+    await serviceWorker.evaluate(async () => {
+      await chrome.storage.local.set({
+        firstTimeNoticeAck: true,
+        open: "always",
+        notesById: ["spa-a-note", "spa-b-note", "spa-c-note"],
+        "spa-a-note": {
+          id: "spa-a-note",
+          pattern: "localhost:6006/spa-a",
+          text: "SPA page A",
+        },
+        "spa-b-note": {
+          id: "spa-b-note",
+          pattern: "localhost:6006/spa-b",
+          text: "SPA page B",
+        },
+        "spa-c-note": {
+          id: "spa-c-note",
+          pattern: "localhost:6006/spa-c",
+          text: "SPA page C",
+        },
+        urlState: {
+          "http://localhost:6006/spa-a": { position: { x: 80, y: 70 } },
+          "http://localhost:6006/spa-b": { position: { x: 220, y: 160 } },
+          "http://localhost:6006/spa-c": { position: { x: 410, y: 250 } },
+        },
+      });
+    });
+
+    await page.goto(HOST_URL);
+    await page.evaluate(() => {
+      window.history.replaceState({}, "", "/spa-a?tab=one#intro");
+    });
+
+    await expect(page.locator("floating-web-notes .Note")).toContainText(
+      "SPA page A",
+    );
+    await expectPanelPosition(page, { x: 80, y: 70 });
+
+    await page.evaluate(() => {
+      window.history.pushState({}, "", "/spa-b?tab=two#details");
+    });
+
+    await expect(page.locator("floating-web-notes .Note")).toContainText(
+      "SPA page B",
+    );
+    await expect(page.locator("floating-web-notes .Note")).not.toContainText(
+      "SPA page A",
+    );
+    await expectPanelPosition(page, { x: 220, y: 160 });
+
+    await page.evaluate(() => {
+      window.history.replaceState({}, "", "/spa-c?tab=three#summary");
+    });
+
+    await expect(page.locator("floating-web-notes .Note")).toContainText(
+      "SPA page C",
+    );
+    await expectPanelPosition(page, { x: 410, y: 250 });
+
+    await page.evaluate(() => window.history.back());
+    await expect(page.locator("floating-web-notes .Note")).toContainText(
+      "SPA page A",
+    );
+    await expectPanelPosition(page, { x: 80, y: 70 });
+
+    await page.evaluate(() => window.history.forward());
+    await expect(page.locator("floating-web-notes .Note")).toContainText(
+      "SPA page C",
+    );
+    await expectPanelPosition(page, { x: 410, y: 250 });
+  });
+
+  test("ignores query-string and fragment-only changes", async ({
+    page,
+    context,
+  }) => {
+    const serviceWorker = await getServiceWorker(context);
+    await serviceWorker.evaluate(async () => {
+      await chrome.storage.local.set({
+        firstTimeNoticeAck: true,
+        open: "always",
+        notesById: ["spa-query-note"],
+        "spa-query-note": {
+          id: "spa-query-note",
+          pattern: "localhost:6006/spa-query",
+          text: "Original query-page note",
+        },
+        urlState: {
+          "http://localhost:6006/spa-query": {
+            position: { x: 140, y: 120 },
+          },
+        },
+      });
+    });
+
+    await page.goto(HOST_URL);
+    await page.evaluate(() => {
+      window.history.pushState({}, "", "/spa-query?tab=one#first");
+    });
+    await expect(page.locator("floating-web-notes .Note")).toContainText(
+      "Original query-page note",
+    );
+    await expectPanelPosition(page, { x: 140, y: 120 });
+
+    await serviceWorker.evaluate(async () => {
+      await chrome.storage.local.set({
+        "spa-query-note": {
+          id: "spa-query-note",
+          pattern: "localhost:6006/spa-query",
+          text: "Unexpectedly refreshed note",
+        },
+        urlState: {
+          "http://localhost:6006/spa-query": {
+            position: { x: 360, y: 280 },
+          },
+        },
+      });
+    });
+
+    await page.evaluate(() => {
+      window.history.replaceState({}, "", "/spa-query?tab=two#second");
+    });
+    await page.waitForTimeout(250);
+
+    await expect(page.locator("floating-web-notes .Note")).toContainText(
+      "Original query-page note",
+    );
+    await expect(page.locator("floating-web-notes .Note")).not.toContainText(
+      "Unexpectedly refreshed note",
+    );
+    await expectPanelPosition(page, { x: 140, y: 120 });
+  });
+
+  test("loads the deferred UI when a new pathname has notes", async ({
+    page,
+    context,
+  }) => {
+    const serviceWorker = await getServiceWorker(context);
+    await serviceWorker.evaluate(async () => {
+      await chrome.storage.local.set({
+        firstTimeNoticeAck: true,
+        open: "with-notes",
+        notesById: ["deferred-spa-note"],
+        "deferred-spa-note": {
+          id: "deferred-spa-note",
+          pattern: "localhost:6006/spa-with-note",
+          text: "Deferred SPA note",
+        },
+        urlState: {
+          "http://localhost:6006/spa-with-note": {
+            position: { x: 300, y: 190 },
+          },
+        },
+      });
+    });
+
+    await page.goto(HOST_URL);
+    await expect(page.locator("floating-web-notes")).toHaveCount(0);
+
+    await page.evaluate(() => {
+      window.history.pushState({}, "", "/spa-with-note?ignored=yes#ignored");
+    });
+
+    await expect(page.locator("floating-web-notes .Note")).toContainText(
+      "Deferred SPA note",
+    );
+    await expectPanelPosition(page, { x: 300, y: 190 });
+  });
 });
 
 test("concurrent note creation keeps every note indexed", async ({

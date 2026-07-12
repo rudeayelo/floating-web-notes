@@ -16,6 +16,7 @@ type AppProps = {
 };
 
 export const App = ({ getActiveOverride }: AppProps) => {
+  const initialized = useUIStore((state) => state.initialized);
   const active = useUIStore((state) => state.active);
   const activeView = useUIStore((state) => state.activeView);
   const activeUtilityPanel = useUIStore((state) => state.activeUtilityPanel);
@@ -24,6 +25,7 @@ export const App = ({ getActiveOverride }: AppProps) => {
   const theme = useSettingsStore((state) => state.theme);
   const updateNotes = useNotesStore((state) => state.updateNotes);
   const position = useUIStore((state) => state.position);
+  const positionContextKey = useUIStore((state) => state.positionContextKey);
   const hasCustomPosition = useUIStore((state) => state.hasCustomPosition);
   const setPosition = useUIStore((state) => state.setPosition);
   const setRootRef = useUIStore((state) => state.setRootRef);
@@ -82,7 +84,7 @@ export const App = ({ getActiveOverride }: AppProps) => {
     updateNotes();
   }, [active, updateNotes]);
 
-  return active ? (
+  return active && initialized ? (
     <>
       <style type="text/css">
         {fontFaceStyles}
@@ -97,8 +99,10 @@ export const App = ({ getActiveOverride }: AppProps) => {
         {...(!hasCustomPosition && { "data-custom-position": false })}
       >
         <Rnd
+          key={positionContextKey}
           default={{
-            ...position,
+            x: 0,
+            y: 0,
             width: "auto",
             height: "auto",
           }}

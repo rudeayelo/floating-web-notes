@@ -7,7 +7,9 @@ import type {
   NotesImportResult,
 } from "../types";
 import { getCurrentWebNotes } from "../utils/getCurrentWebNotes";
-import { urlMatchesPattern } from "../utils/urls";
+import { cleanURL, urlMatchesPattern } from "../utils/urls";
+
+let notesUpdateRequestId = 0;
 
 type NotesState = {
   notes: Note[];
@@ -20,7 +22,7 @@ type NotesState = {
     exportData: unknown,
     mode: NotesImportMode,
   ) => Promise<NotesImportResult>;
-  updateNotes: () => Promise<void>;
+  updateNotes: (url?: string) => Promise<void>;
   notesKey: number | null;
   forceNotesUpdate: () => void;
 };
@@ -30,7 +32,10 @@ export const useNotesStore = create<NotesState>((set) => ({
   /*                                   Notes                                    */
   /* -------------------------------------------------------------------------- */
   notes: [],
-  setNotes: (notes: Note[]) => set({ notes }),
+  setNotes: (notes: Note[]) => {
+    notesUpdateRequestId += 1;
+    set({ notes, notesKey: Date.now() });
+  },
   setNote: async (note: Note) => {
     // Persist to storage (background ensures notesById contains the id)
     await Api.set.note(note);
@@ -86,8 +91,18 @@ export const useNotesStore = create<NotesState>((set) => ({
   /* -------------------------------------------------------------------------- */
   /*                               Update Notes                                 */
   /* -------------------------------------------------------------------------- */
-  updateNotes: async () => {
-    const currentNotes = await getCurrentWebNotes();
+  updateNotes: async (url = window.location.href) => {
+    const requestId = ++notesUpdateRequestId;
+    const pageKey = cleanURL(url);
+    const currentNotes = await getCurrentWebNotes(url);
+
+    if (
+      requestId !== notesUpdateRequestId ||
+      cleanURL(window.location.href) !== pageKey
+    ) {
+      return;
+    }
+
     set({ notes: currentNotes, notesKey: Date.now() });
   },
 }));

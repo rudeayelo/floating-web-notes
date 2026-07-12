@@ -5,7 +5,10 @@ import type { Position } from "../types";
 import { getCurrentWebNotes } from "../utils/getCurrentWebNotes";
 import { cleanURL } from "../utils/urls";
 
+let pageStateRequestId = 0;
+
 type UIState = {
+  initialized: boolean;
   firstTimeNoticeAck: boolean;
   closeFirstTimeNotice: () => Promise<void>;
   active: boolean;
@@ -18,9 +21,11 @@ type UIState = {
   screenshotMode: boolean;
   setScreenshotMode: (mode: boolean) => void;
   position: Position;
+  positionContextKey: number;
   hasCustomPosition: boolean;
   setPosition: (position: Position) => Promise<void>;
   restorePosition: (url: string) => Promise<void>;
+  synchronizePage: (url: string, active: boolean) => Promise<void>;
   dragHandleDiscovered: boolean;
   setDragHandleDiscovered: (value: boolean) => Promise<void>;
   markDragHandleDiscovered: () => Promise<void>;
@@ -36,6 +41,7 @@ const defaultPosition: Position =
     : { x: document.documentElement.clientWidth - 340 - 24, y: 24 };
 
 export const useUIStore = create<UIState>((set) => ({
+  initialized: false,
   /* -------------------------------------------------------------------------- */
   /*                      First time notice acknowledgment                      */
   /* -------------------------------------------------------------------------- */
@@ -81,14 +87,55 @@ export const useUIStore = create<UIState>((set) => ({
   /*                               Position                                     */
   /* -------------------------------------------------------------------------- */
   position: defaultPosition,
+  positionContextKey: 0,
   hasCustomPosition: false,
   setPosition: async (position: Position) => {
-    await Api.set.position(cleanURL(), position);
+    const requestId = ++pageStateRequestId;
+    const pageKey = cleanURL();
+    await Api.set.position(pageKey, position);
+
+    if (
+      requestId !== pageStateRequestId ||
+      cleanURL(window.location.href) !== pageKey
+    ) {
+      return;
+    }
+
     set({ position, hasCustomPosition: true });
   },
   restorePosition: async (url: string) => {
-    await Api.remove.position(cleanURL(url));
+    const requestId = ++pageStateRequestId;
+    const pageKey = cleanURL(url);
+    await Api.remove.position(pageKey);
+
+    if (
+      requestId !== pageStateRequestId ||
+      cleanURL(window.location.href) !== pageKey
+    ) {
+      return;
+    }
+
     set({ position: defaultPosition, hasCustomPosition: false });
+  },
+  synchronizePage: async (url: string, active: boolean) => {
+    const requestId = ++pageStateRequestId;
+    const pageKey = cleanURL(url);
+    set({ active });
+
+    const customPosition = await Api.get.position(pageKey);
+    if (
+      requestId !== pageStateRequestId ||
+      cleanURL(window.location.href) !== pageKey
+    ) {
+      return;
+    }
+
+    set((state) => ({
+      initialized: true,
+      hasCustomPosition: !!customPosition,
+      position: customPosition || defaultPosition,
+      positionContextKey: state.positionContextKey + 1,
+    }));
   },
 
   /* -------------------------------------------------------------------------- */
@@ -116,9 +163,11 @@ export const useUIStore = create<UIState>((set) => ({
   /*                               Initialization                               */
   /* -------------------------------------------------------------------------- */
   initialize: async (getActiveOverride) => {
+    const requestId = ++pageStateRequestId;
+    const pageKey = cleanURL(window.location.href);
     const [customPosition, dragHandleDiscovered, firstTimeNoticeAck] =
       await Promise.all([
-        Api.get.position(cleanURL(window.location.href)),
+        Api.get.position(pageKey),
         Api.get.dragHandleDiscovered(),
         Api.get.firstTimeNoticeAck(),
       ]);
@@ -131,7 +180,7 @@ export const useUIStore = create<UIState>((set) => ({
       const [openDefault, initialVisibility, currentNotes] = await Promise.all([
         Api.get.openDefault(),
         Api.get.visibility(),
-        getCurrentWebNotes(),
+        getCurrentWebNotes(pageKey),
       ]);
       const open = openDefault || "with-notes";
 
@@ -150,7 +199,16 @@ export const useUIStore = create<UIState>((set) => ({
 
     const latestActiveOverride = getActiveOverride?.();
 
-    set({
+    if (
+      requestId !== pageStateRequestId ||
+      cleanURL(window.location.href) !== pageKey
+    ) {
+      set({ firstTimeNoticeAck, dragHandleDiscovered });
+      return;
+    }
+
+    set((state) => ({
+      initialized: true,
       firstTimeNoticeAck,
       dragHandleDiscovered,
       active:
@@ -159,6 +217,7 @@ export const useUIStore = create<UIState>((set) => ({
           : (latestActiveOverride ?? isActive),
       hasCustomPosition: !!customPosition,
       position: customPosition || defaultPosition,
-    });
+      positionContextKey: state.positionContextKey + 1,
+    }));
   },
 }));

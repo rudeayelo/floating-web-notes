@@ -4,8 +4,8 @@ These notes describe the extension's architecture, file responsibilities, and th
 
 ## Key Entry Points
 
-- `src/content-loader.ts` is the manifest content-script entry point. It stays lightweight, resolves initial visibility through `background.ts`, and dynamically imports the full frontend only when the panel should be shown.
-- `src/content.tsx` mounts the full extension frontend after the loader requests it. Content behavior is tested via Playwright in `src/content.test.ts`.
+- `src/content-loader.ts` is the manifest content-script entry point. It stays lightweight, resolves initial visibility through `background.ts`, watches same-document pathname changes, and dynamically imports the full frontend only when the panel should be shown.
+- `src/content.tsx` mounts the full extension frontend after the loader requests it and coordinates route-scoped note and position refreshes. Content behavior is tested via Playwright in `src/content.test.ts`.
 - `src/background.ts` owns extension data logic and is where most `chrome.*` APIs should be called.
 - `src/api.ts` is a thin messaging layer between the frontend and `background.ts`. It should only send structured messages and avoid business logic.
 - Frontend state lives in the stores under `src/store/` (`NotesStore.ts`, `SettingsStore.ts`, `UIStore.ts`).

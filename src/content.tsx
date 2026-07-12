@@ -2,7 +2,7 @@ import { Tooltip } from "@base-ui/react/tooltip";
 import { useState } from "react";
 import { App } from "./App";
 import { ShadowDom } from "./components/ShadowDom";
-import { useUIStore } from "./store";
+import { useNotesStore, useUIStore } from "./store";
 import { render } from "./utils/render";
 
 let mounted = false;
@@ -37,4 +37,17 @@ export const mountFloatingWebNotes = (initialActive: boolean) => {
 
   mounted = true;
   render(<FloatingWebNotes />);
+};
+
+export const synchronizeFloatingWebNotes = async (
+  url: string,
+  active: boolean,
+) => {
+  setFloatingWebNotesActive(active);
+  useNotesStore.getState().setNotes([]);
+
+  await Promise.all([
+    useNotesStore.getState().updateNotes(url),
+    useUIStore.getState().synchronizePage(url, active),
+  ]);
 };
