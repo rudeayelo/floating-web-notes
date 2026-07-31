@@ -2,6 +2,7 @@
     "name": "floating-web-notes",
     "private": true,
     "version": "0.3.6",
+    "packageManager": "pnpm@11.17.0",
     "type": "module",
     "scripts": {
         "dev": "vite",
