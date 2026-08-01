@@ -2,6 +2,7 @@ allowBuilds:
   esbuild: true
 minimumReleaseAgeExclude:
   - react-hotkeys-hook@5.3.3
+  - '@types/chrome@0.2.5'
 onlyBuiltDependencies:
   - puppeteer
   - unrs-resolver
