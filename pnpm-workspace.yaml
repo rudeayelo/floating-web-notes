@@ -4,6 +4,16 @@ minimumReleaseAgeExclude:
   - react-hotkeys-hook@5.3.3
   - '@types/chrome@0.2.5'
   - '@doist/typist@17.0.1'
+  - '@biomejs/biome@2.5.11'
+  - '@biomejs/cli-darwin-arm64@2.5.11'
+  - '@biomejs/cli-darwin-x64@2.5.11'
+  - '@biomejs/cli-linux-arm64-musl@2.5.11'
+  - '@biomejs/cli-linux-arm64@2.5.11'
+  - '@biomejs/cli-linux-x64-musl@2.5.11'
+  - '@biomejs/cli-linux-x64@2.5.11'
+  - '@biomejs/cli-win32-arm64@2.5.11'
+  - '@biomejs/cli-win32-x64@2.5.11'
+  - '@vitejs/plugin-react@6.1.1'
 onlyBuiltDependencies:
   - puppeteer
   - unrs-resolver
