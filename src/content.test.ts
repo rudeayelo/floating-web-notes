@@ -161,7 +161,18 @@ test("defers the full UI until a hidden panel is activated", async ({
           currentWindow: true,
         });
         if (!tab?.id) return null;
-        return chrome.tabs.sendMessage(tab.id, { type: "getActive" });
+        try {
+          return await chrome.tabs.sendMessage(tab.id, { type: "getActive" });
+        } catch (error) {
+          if (
+            error instanceof Error &&
+            error.message ===
+              "Could not establish connection. Receiving end does not exist."
+          ) {
+            return null;
+          }
+          throw error;
+        }
       });
     })
     .toBe(false);

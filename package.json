@@ -2,7 +2,7 @@
     "name": "floating-web-notes",
     "private": true,
     "version": "0.3.6",
-    "packageManager": "pnpm@12.8.1",
+    "packageManager": "pnpm@12.20.0",
     "type": "module",
     "scripts": {
         "dev": "vite",
@@ -20,30 +20,30 @@
     },
     "dependencies": {
         "@base-ui/react": "1.9.0",
-        "@doist/typist": "17.0.6",
+        "@doist/typist": "17.1.2",
         "emoji-regex": "^10.6.0",
         "linkifyjs": "^4.4.0",
         "lodash-es": "^4.18.1",
         "nanoid": "6.0.2",
         "react": "19.3.1",
         "react-dom": "19.3.1",
-        "react-hotkeys-hook": "5.3.3",
+        "react-hotkeys-hook": "5.4.0",
         "react-rnd": "10.5.3",
         "use-debounce": "10.1.1",
-        "zustand": "5.0.16"
+        "zustand": "5.1.0"
     },
     "devDependencies": {
-        "@biomejs/biome": "2.6.5",
+        "@biomejs/biome": "2.6.7",
         "@crxjs/vite-plugin": "3.0.0",
-        "@playwright/test": "1.64.0",
+        "@playwright/test": "1.65.0",
         "@types/chrome": "0.3.7",
         "@types/node": "26.6.6",
         "@types/react": "19.3.0",
         "@types/react-dom": "19.3.0",
         "@types/sanitize-html": "2.16.2",
-        "@vitejs/plugin-react": "6.2.1",
-        "concurrently": "10.0.6",
+        "@vitejs/plugin-react": "6.3.0",
+        "concurrently": "10.0.7",
         "typescript": "7.0.2",
-        "vite": "8.3.6"
+        "vite": "8.3.8"
     }
 }
