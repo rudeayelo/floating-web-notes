@@ -1,4 +1,4 @@
-import { RichTextKit, TypistEditor } from "@doist/typist";
+import { RichTextKit, TypistEditor } from "@todoist/typist";
 import type { ComponentProps } from "react";
 import { useEffect, useRef } from "react";
 import { useDebouncedCallback } from "use-debounce";

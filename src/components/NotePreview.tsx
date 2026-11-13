@@ -1,4 +1,4 @@
-import { RichTextKit, TypistEditor } from "@doist/typist";
+import { RichTextKit, TypistEditor } from "@todoist/typist";
 
 type NotePreviewProps = {
   text: string;
