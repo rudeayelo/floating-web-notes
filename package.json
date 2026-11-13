@@ -1,7 +1,7 @@
 {
     "name": "floating-web-notes",
     "private": true,
-    "version": "0.3.6",
+    "version": "0.3.7",
     "packageManager": "pnpm@12.20.0",
     "type": "module",
     "scripts": {
